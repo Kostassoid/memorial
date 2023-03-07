@@ -1,13 +1,13 @@
-use crate::model::knowledge::KnowledgeNode;
+use crate::model::knowledge::KnowledgeTree;
 
 pub trait Renderer {
-    fn render(root: KnowledgeNode) -> String;
+    fn render(root: KnowledgeTree) -> String;
 }
 
 struct MarkdownRenderer {}
 
 impl Renderer for MarkdownRenderer {
-    fn render(root: KnowledgeNode) -> String {
+    fn render(root: KnowledgeTree) -> String {
         todo!()
     }
 }

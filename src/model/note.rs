@@ -2,6 +2,7 @@ use std::fs::File;
 use std::path::PathBuf;
 use super::handle::Handle;
 
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct FileLocation {
     path: PathBuf,
     line: u32,
@@ -16,6 +17,7 @@ impl FileLocation {
     }
 }
 
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Note {
     handle: Handle,
     location: FileLocation,
