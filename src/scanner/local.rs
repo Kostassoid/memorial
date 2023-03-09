@@ -3,39 +3,55 @@ use std::path::{Path, PathBuf};
 use std::sync::mpsc::Sender;
 use anyhow::{Result, anyhow, Context};
 use crate::scanner::{File, FileScanner};
+use crate::scanner::path_filter::PathFilter;
 
 pub struct LocalConfig {
     root: PathBuf,
-    include: Vec<PathBuf>,
-    exclude: Vec<PathBuf>,
+    include: Vec<String>,
+    exclude: Vec<String>,
     parallelism: u32,
 }
 
 pub struct LocalFile {
-    path: PathBuf,
+    local_path: PathBuf,
     absolute_path: PathBuf,
 }
 
 pub struct LocalFileScanner {
     config: LocalConfig,
+    filter: PathFilter,
 }
 
 impl LocalFileScanner {
-    pub fn new(config: LocalConfig) -> LocalFileScanner {
-        LocalFileScanner { config }
+    pub fn new(config: LocalConfig) -> Result<LocalFileScanner> {
+        let filter = PathFilter::from_glob(
+            &config.include,
+            &config.exclude,
+        )?;
+
+        Ok(LocalFileScanner {
+            config,
+            filter,
+        })
     }
 
     fn visit(&self, path: &Path, target: &Sender<LocalFile>) -> Result<()> {
         for entry in fs::read_dir(path)? {
             let entry = entry?;
             let path = entry.path();
-
-            //todo: filter out the paths
+            let local_path = path.strip_prefix(&self.config.root)?;
 
             if path.is_dir() {
                 self.visit(&path, target)?;
             } else {
-                target.send(LocalFile::new(path.clone(), path.clone()))?;
+                if !self.filter.is_allowed(local_path.as_os_str()) {
+                    continue;
+                }
+
+                target.send(LocalFile::new(
+                    local_path,
+                    path.clone(),
+                ))?;
             }
         }
         Ok(())
@@ -51,9 +67,9 @@ impl FileScanner for LocalFileScanner {
 }
 
 impl LocalFile {
-    pub fn new<P: AsRef<Path>, A: AsRef<Path>>(path: P, absolute_path: A) -> LocalFile {
+    pub fn new<P: AsRef<Path>, A: AsRef<Path>>(local_path: P, absolute_path: A) -> LocalFile {
         LocalFile {
-            path: path.as_ref().to_path_buf(),
+            local_path: local_path.as_ref().to_path_buf(),
             absolute_path: absolute_path.as_ref().to_path_buf(),
         }
     }
@@ -62,7 +78,7 @@ impl LocalFile {
 
 impl File for LocalFile {
     fn path(&self) -> PathBuf {
-        self.path.clone()
+        self.local_path.clone()
     }
 
     fn contents(&self) -> Result<String> {
@@ -82,19 +98,23 @@ mod test {
     fn scan_local_directory() {
         let config = LocalConfig {
             root: env::current_dir().unwrap(),
-            include: vec!("tests/**/*.go".into()),
+            include: vec!("src/tests/**/*.go".into()),
             exclude: vec!("**/*bad*".into()),
             parallelism: 1,
         };
 
-        let scanner = LocalFileScanner::new(config);
+        let scanner = LocalFileScanner::new(config).unwrap();
 
         let (tx, rx): (Sender<LocalFile>, Receiver<LocalFile>) = mpsc::channel();
 
         scanner.scan(tx).unwrap();
 
-        for x in rx {
-            println!("p: {}, a: {}", x.path.display(), x.absolute_path.display());
-        }
+        let valid_files: Vec<_> = rx.into_iter().collect();
+
+        assert_eq!(1, valid_files.len());
+        assert_eq!(
+            r"src\tests\cases\go\test.go",
+            valid_files.get(0).unwrap().local_path.to_str().unwrap(),
+        );
     }
 }

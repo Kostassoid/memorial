@@ -2,13 +2,13 @@ use std::path;
 use std::path::Path;
 use anyhow::{Result, anyhow, Context};
 
-struct PathFilter {
+pub struct PathFilter {
     include: Vec<glob::Pattern>,
     exclude: Vec<glob::Pattern>,
 }
 
 impl PathFilter {
-    pub fn from_glob(include: Vec<String>, exclude: Vec<String>) -> Result<PathFilter> {
+    pub fn from_glob(include: &Vec<String>, exclude: &Vec<String>) -> Result<PathFilter> {
         let include: std::result::Result<Vec<_>, _> = include
             .into_iter()
             .map(|s| glob::Pattern::new(&s))
@@ -39,12 +39,20 @@ mod test {
     fn allowed_patterns() {
         // taken from https://www.atlassian.com/git/tutorials/saving-changes/gitignore
         let f = PathFilter::from_glob(
-            vec!(r"**/logs/*".to_string()), //"**/logs" would be allowed in .gitignore but not in globs
-            vec![],
+            &vec!(r"**/logs/*".to_string()), //"**/logs" would be allowed in .gitignore but not in Unix globs
+            &vec![],
         ).unwrap();
         assert!(f.is_allowed(r"logs/debug.log"));
         assert!(f.is_allowed(r"logs/monday/foo.bar"));
         assert!(f.is_allowed(r"build/logs/debug.log"));
         assert!(!f.is_allowed(r"log/debug.log"));
+
+        let f = PathFilter::from_glob(
+            &vec!(r"**/logs/debug.log".to_string()),
+            &vec![],
+        ).unwrap();
+        assert!(f.is_allowed(r"logs/debug.log"));
+        assert!(f.is_allowed(r"build/logs/debug.log"));
+        assert!(!f.is_allowed(r"logs/build/debug.log"));
     }
 }
