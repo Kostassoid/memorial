@@ -1,5 +1,6 @@
 mod model;
 mod scanner;
+mod parser;
 mod renderer;
 mod cli;
 

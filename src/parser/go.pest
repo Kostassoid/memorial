@@ -1,0 +1,24 @@
+item = _{ SOI ~ line* ~ EOI }
+line = _{ regexp | timeparse | string | other }
+
+other = ${ !(string) ~ ANY }
+
+WHITESPACE = { " " | "\t" | NEWLINE }
+
+line_comment  = _{ "//" ~ (!(NEWLINE) ~ ANY)* }
+block_comment = _{ "/*" ~ (!("*/") ~ ANY)* ~ "*/"}
+COMMENT       = ${ line_comment | block_comment }
+
+string       = ${ inner_string }
+inner_string = _{
+  ("`" ~ (!("`" | string_verb) ~ ANY)* ~ "`")
+  | ("\"" ~ (!(NEWLINE | "\"" | string_verb) ~ ANY)* ~ "\"")
+}
+string_verb  = { "%" ~ ("s" | "q" | "v") }
+
+regexp = ${
+  ("regexp." ~ (ASCII_ALPHA)+ ~ "(" ~ " "* ~ inner_string ~ (!")" ~ ANY)* ~ ")")
+}
+timeparse = ${
+  ("time." ~ (ASCII_ALPHA)+ ~ "(" ~ " "* ~ inner_string ~ (!")" ~ ANY)* ~ ")")
+}
