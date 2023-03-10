@@ -9,7 +9,16 @@ pub struct LocalConfig {
     root: PathBuf,
     include: Vec<String>,
     exclude: Vec<String>,
-    parallelism: u32,
+}
+
+impl LocalConfig {
+    pub fn new<P: AsRef<Path>>(root: P, include: Vec<String>, exclude: Vec<String>) -> LocalConfig {
+        LocalConfig {
+            root: root.as_ref().to_path_buf(),
+            include,
+            exclude
+        }
+    }
 }
 
 pub struct LocalFile {
@@ -100,7 +109,6 @@ mod test {
             root: env::current_dir().unwrap(),
             include: vec!("src/tests/**/*.go".into()),
             exclude: vec!("**/*bad*".into()),
-            parallelism: 1,
         };
 
         let scanner = LocalFileScanner::new(config).unwrap();

@@ -1,12 +1,14 @@
-item = _{ SOI ~ line* ~ EOI }
-line = _{ regexp | timeparse | string | other }
+root = _{ SOI ~ line* ~ EOI }
+line = _{ string | other }
 
 other = ${ !(string) ~ ANY }
 
 WHITESPACE = { " " | "\t" | NEWLINE }
 
-line_comment  = _{ "//" ~ (!(NEWLINE) ~ ANY)* }
-block_comment = _{ "/*" ~ (!("*/") ~ ANY)* ~ "*/"}
+line_comment_body  = { (!(NEWLINE) ~ ANY)* }
+block_comment_body = { (!("*/") ~ ANY)* }
+line_comment  = _{ "//" ~ line_comment_body }
+block_comment = _{ "/*" ~ block_comment_body ~ "*/"}
 COMMENT       = ${ line_comment | block_comment }
 
 string       = ${ inner_string }
@@ -15,10 +17,3 @@ inner_string = _{
   | ("\"" ~ (!(NEWLINE | "\"" | string_verb) ~ ANY)* ~ "\"")
 }
 string_verb  = { "%" ~ ("s" | "q" | "v") }
-
-regexp = ${
-  ("regexp." ~ (ASCII_ALPHA)+ ~ "(" ~ " "* ~ inner_string ~ (!")" ~ ANY)* ~ ")")
-}
-timeparse = ${
-  ("time." ~ (ASCII_ALPHA)+ ~ "(" ~ " "* ~ inner_string ~ (!")" ~ ANY)* ~ ")")
-}

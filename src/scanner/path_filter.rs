@@ -1,6 +1,5 @@
-use std::path;
 use std::path::Path;
-use anyhow::{Result, anyhow, Context};
+use anyhow::Result;
 
 pub struct PathFilter {
     include: Vec<glob::Pattern>,

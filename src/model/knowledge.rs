@@ -4,6 +4,7 @@ use anyhow::{Result, anyhow};
 use super::handle::*;
 use super::note::Note;
 
+#[derive(Debug)]
 pub struct KnowledgeTree {
     handle_part: HandlePart,
     notes: Vec<Note>,
@@ -23,11 +24,11 @@ impl KnowledgeTree {
         let mut node = self;
 
         for p in handle.parts() {
-            let mut children = &mut node.children;
+            let children = &mut node.children;
             if children.contains_key(p) {
                 node = children.get_mut(p).unwrap();
             } else {
-                let mut new_node = KnowledgeTree::empty();
+                let new_node = KnowledgeTree::empty();
 
                 children.insert(p.clone(), Box::new(new_node));
 

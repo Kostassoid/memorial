@@ -1,19 +1,18 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::mpsc::Sender;
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 
-pub(crate) mod config;
-mod local;
+pub mod config;
+pub mod local;
 mod path_filter;
 
-trait File {
+pub trait File {
     fn path(&self) -> PathBuf;
     fn contents(&self) -> Result<String>;
 }
 
-trait FileScanner {
+pub trait FileScanner {
     type F: File;
 
     fn scan(&self, target: Sender<Self::F>) -> Result<()>;
 }
-

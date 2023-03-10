@@ -1,15 +1,14 @@
-use std::fs::File;
 use std::path::PathBuf;
 use super::handle::Handle;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct FileLocation {
     path: PathBuf,
-    line: u32,
+    line: usize,
 }
 
 impl FileLocation {
-    pub fn new<P: Into<PathBuf>>(path: P, line: u32) -> FileLocation {
+    pub fn new<P: Into<PathBuf>>(path: P, line: usize) -> FileLocation {
         FileLocation {
             path: path.into(),
             line,
