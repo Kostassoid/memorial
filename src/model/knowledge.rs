@@ -6,7 +6,6 @@ use super::note::Note;
 
 #[derive(Debug)]
 pub struct KnowledgeTree {
-    handle_part: HandlePart,
     notes: Vec<Note>,
     children: BTreeMap<HandlePart, Box<KnowledgeTree>>
 }
@@ -14,7 +13,6 @@ pub struct KnowledgeTree {
 impl KnowledgeTree {
     pub fn empty() -> KnowledgeTree {
         KnowledgeTree {
-            handle_part: Handle::ROOT_PART.to_string(),
             notes: vec![],
             children: Default::default(),
         }
@@ -53,8 +51,8 @@ impl KnowledgeTree {
         Some(node)
     }
 
-    pub fn add(&mut self, note: Note) -> () {
-        self.find_node_mut(note.handle()).notes.push(note);
+    pub fn add(&mut self, handle: Handle, note: Note) -> () {
+        self.find_node_mut(&handle).notes.push(note);
     }
 
 }
@@ -75,25 +73,25 @@ mod test {
     fn knowledge_tree_adding_records() {
         let mut kt = KnowledgeTree::empty();
 
+        let handle = Handle::build_from("a/b/c").unwrap();
+
         let note1 = Note::new(
-            Handle::build_from("a/b/c").unwrap(),
             FileLocation::new("test.go", 333),
             Some("Facts".to_string()),
             vec![],
         );
 
         let note2 = Note::new(
-            Handle::build_from("a/b/c").unwrap(),
             FileLocation::new("test2.go", 333),
             Some("Facts 2".to_string()),
             vec![],
         );
 
-        kt.add(note1.clone());
-        kt.add(note2.clone());
+        kt.add(handle.clone(),note1.clone());
+        kt.add(handle.clone(),note2.clone());
 
         assert_eq!(kt.children.len(), 1);
         assert!(kt.children.get("a").unwrap().children.get("b").unwrap().children.get("c").is_some());
-        assert_eq!(kt.find_node(note1.handle()).unwrap().notes, vec!(note1, note2));
+        assert_eq!(kt.find_node(&handle).unwrap().notes, vec!(note1, note2));
     }
 }

@@ -18,23 +18,17 @@ impl FileLocation {
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Note {
-    handle: Handle,
     location: FileLocation,
     body: Option<String>,
     mentions: Vec<Handle>
 }
 
 impl Note {
-    pub fn new(handle: Handle, location: FileLocation, body: Option<String>, mentions: Vec<Handle>) -> Note {
+    pub fn new(location: FileLocation, body: Option<String>, mentions: Vec<Handle>) -> Note {
         Note {
-            handle,
             location,
             body,
             mentions,
         }
-    }
-
-    pub fn handle(&self) -> &Handle {
-        &self.handle
     }
 }

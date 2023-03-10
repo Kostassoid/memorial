@@ -43,13 +43,13 @@ impl <X: File> Collector<X> {
 
             let quotes = parser.extract_from_str(&f.contents()?)?;
             quotes.into_iter().for_each(|q| {
+                let handle = Handle::build_from("fake/path").unwrap(); //todo: this
                 let note = Note::new(
-                    Handle::build_from("fake/path").unwrap(), //todo: this
                     FileLocation::new(path, q.line),
                     Some(q.body),
                     vec![],
                 );
-                knowledge.add(note);
+                knowledge.add(handle, note);
             })
         }
 
