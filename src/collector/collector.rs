@@ -10,15 +10,15 @@ use crate::model::note::{FileLocation, Note};
 use crate::parser::QuoteParser;
 use crate::scanner::{File, FileScanner};
 
-pub struct Collector<X: File> {
-    scanner: Box<dyn FileScanner<F=X>>,
+pub struct Collector {
+    knowledge: KnowledgeTree,
     parsers: HashMap<FileTypeMatcher, Box<dyn QuoteParser>>,
 }
 
-impl <X: File> Collector<X> {
-    pub fn new(scanner: Box<dyn FileScanner<F=X>>) -> Collector<X> {
+impl Collector {
+    pub fn new() -> Collector {
         Collector{
-            scanner,
+            knowledge: KnowledgeTree::empty(),
             parsers: Default::default(),
         }
     }
@@ -27,12 +27,10 @@ impl <X: File> Collector<X> {
         self.parsers.insert(matcher, parser);
     }
 
-    pub fn scan(&self) -> Result<KnowledgeTree> {
+    pub fn scan<X: File>(&mut self, scanner: &dyn FileScanner<F=X>) -> Result<()> {
         let (tx, rx): (Sender<X>, Receiver<X>) = mpsc::channel();
 
-        self.scanner.scan(tx)?;
-
-        let mut knowledge = KnowledgeTree::empty();
+        scanner.scan(tx)?;
 
         //todo: parallelize
         for f in rx {
@@ -49,11 +47,15 @@ impl <X: File> Collector<X> {
                     Some(q.body),
                     vec![],
                 );
-                knowledge.add(handle, note);
+                self.knowledge.add(handle, note);
             })
         }
 
-        Ok(knowledge)
+        Ok(())
+    }
+
+    pub fn knowledge(&self) -> &KnowledgeTree {
+        &self.knowledge
     }
 
     fn find_parser(&self, path: &PathBuf) -> Option<&Box<dyn QuoteParser>> {
@@ -81,11 +83,13 @@ mod test {
             vec!("**/*bad*".into()),
         );
 
-        let scanner = LocalFileScanner::new(config).unwrap();
-        let mut collector = Collector::new(Box::new(scanner));
+        let mut collector = Collector::new();
         collector.register_parser(FileTypeMatcher::Extension("go".to_string()), Box::new(GoParser{}));
 
-        let knowledge = collector.scan().unwrap();
+        let scanner = LocalFileScanner::new(config).unwrap();
+        collector.scan(&scanner).unwrap();
+
+        let knowledge = collector.knowledge();
         println!("k = {knowledge:#?}");
     }
 }
