@@ -17,17 +17,24 @@ impl FileLocation {
 }
 
 #[derive(PartialEq, Eq, Debug, Clone)]
+pub enum NoteSpan {
+    Link(Handle),
+    Attribute(String, String),
+    Text(String),
+}
+
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Note {
     location: FileLocation,
-    body: Option<String>,
+    content: Vec<NoteSpan>,
     mentions: Vec<Handle>
 }
 
 impl Note {
-    pub fn new(location: FileLocation, body: Option<String>, mentions: Vec<Handle>) -> Note {
+    pub fn new(location: FileLocation, content: Vec<NoteSpan>, mentions: Vec<Handle>) -> Note {
         Note {
             location,
-            body,
+            content,
             mentions,
         }
     }

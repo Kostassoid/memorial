@@ -16,8 +16,8 @@ impl Handle {
 impl Handle {
     pub const ROOT_PART: &'static str = "";
 
-    pub fn build_from(s: &str) -> Result<Handle> {
-        let parts: Vec<_> = s.split('/').map(|p| p.trim().to_string()).collect();
+    pub fn build_from_parts(parts: Vec<&str>) -> Result<Handle> {
+        let parts: Vec<HandlePart> = parts.iter().map(|p| p.to_string()).collect();
 
         if parts.is_empty() {
             return Err(anyhow!("Empty handle".to_string()))
@@ -28,5 +28,11 @@ impl Handle {
         }
 
         Ok(Handle { parts })
+    }
+
+    pub fn build_from_str(s: &str) -> Result<Handle> {
+        let parts: Vec<_> = s.split('/').map(|p| p.trim()).collect();
+
+        Self::build_from_parts(parts)
     }
 }

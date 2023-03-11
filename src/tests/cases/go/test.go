@@ -6,9 +6,8 @@ type Accumulator struct {
     Value int32
 }
 
-
 func (a *Accumulator) Collect(x int32) error {
-    /* @[Domain/Accumulator/Invariants]
+    /*@[Domain/Accumulator/Invariants]{alias:Domain rules}
     The accumulated value is always increasing when collecting new values.
     */
     // Normal comment

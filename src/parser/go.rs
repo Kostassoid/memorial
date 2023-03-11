@@ -32,7 +32,7 @@ mod tests {
 
     #[test]
     fn parse_go() {
-        let parsed = GoParser{}.extract_from_str(r"
+        let parsed = GoParser{}.extract_from_str(r#"
         package test
 
         /*
@@ -40,15 +40,16 @@ mod tests {
         is long
         */
         func TestFun() {
+          _ = "This is /* not a comment */"
           // Inline comment
           // Another inline comment
         }
-       ").unwrap();
+       "#).unwrap();
 
         let expected = vec!(
             Quote { body: "Block comment\n        is long".to_string(), line: 4 },
-            Quote { body: "Inline comment".to_string(), line: 9 },
-            Quote { body: "Another inline comment".to_string(), line: 10 }
+            Quote { body: "Inline comment".to_string(), line: 10 },
+            Quote { body: "Another inline comment".to_string(), line: 11 }
         );
 
         assert_eq!(expected, parsed)

@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
 use std::string::ToString;
-use anyhow::{Result, anyhow};
 use super::handle::*;
 use super::note::Note;
 
@@ -59,7 +58,7 @@ impl KnowledgeTree {
 
 #[cfg(test)]
 mod test {
-    use crate::model::note::FileLocation;
+    use crate::model::note::{FileLocation, NoteSpan};
     use super::*;
 
     #[test]
@@ -73,17 +72,17 @@ mod test {
     fn knowledge_tree_adding_records() {
         let mut kt = KnowledgeTree::empty();
 
-        let handle = Handle::build_from("a/b/c").unwrap();
+        let handle = Handle::build_from_str("a/b/c").unwrap();
 
         let note1 = Note::new(
             FileLocation::new("test.go", 333),
-            Some("Facts".to_string()),
+            vec!(NoteSpan::Text("Facts".to_string())),
             vec![],
         );
 
         let note2 = Note::new(
             FileLocation::new("test2.go", 333),
-            Some("Facts 2".to_string()),
+            vec!(NoteSpan::Text("Facts 2".to_string())),
             vec![],
         );
 

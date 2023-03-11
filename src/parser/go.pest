@@ -3,7 +3,7 @@ line = _{ string | other }
 
 other = ${ !(string) ~ ANY }
 
-WHITESPACE = { " " | "\t" | NEWLINE }
+WHITESPACE = _{ " " | "\t" | NEWLINE }
 
 line_comment_body  = { (!(NEWLINE) ~ ANY)* }
 block_comment_body = { (!("*/") ~ ANY)* }

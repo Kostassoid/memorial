@@ -4,9 +4,10 @@ use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use anyhow::{Result, anyhow, Context};
 use crate::collector::file_matcher::FileTypeMatcher;
+use crate::collector::note_parser::NoteParser;
 use crate::model::handle::Handle;
 use crate::model::knowledge::KnowledgeTree;
-use crate::model::note::{FileLocation, Note};
+use crate::model::note::{FileLocation, Note, NoteSpan};
 use crate::parser::QuoteParser;
 use crate::scanner::{File, FileScanner};
 
@@ -41,13 +42,22 @@ impl Collector {
 
             let quotes = parser.extract_from_str(&f.contents()?)?;
             quotes.into_iter().for_each(|q| {
-                let handle = Handle::build_from("fake/path").unwrap(); //todo: this
-                let note = Note::new(
-                    FileLocation::new(path, q.line),
-                    Some(q.body),
-                    vec![],
-                );
-                self.knowledge.add(handle, note);
+                match NoteParser::parse_from_str(&q.body) {
+                    Ok(mut parts) => {
+                        let handle = match parts.remove(0) {
+                            NoteSpan::Link(h) => Some(h),
+                            _ => None
+                        }.unwrap(); //todo: handle more gracefully
+
+                        let note = Note::new(
+                            FileLocation::new(path, q.line),
+                            parts,
+                            vec![],
+                        );
+                        self.knowledge.add(handle.clone(), note);
+                    },
+                    Err(_) => { /* ignore for now */ }
+                }
             })
         }
 
