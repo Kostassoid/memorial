@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::Sender;
-use anyhow::{Result, anyhow, Context};
+use anyhow::{Result, Context};
 use crate::scanner::{File, FileScanner};
 use crate::scanner::path_filter::PathFilter;
 

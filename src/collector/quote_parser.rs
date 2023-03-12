@@ -35,7 +35,6 @@ impl QuoteParser {
 
 #[cfg(test)]
 mod tests {
-    use crate::model::note::Note;
     use super::*;
 
     #[test]
@@ -47,11 +46,19 @@ mod tests {
        "#).unwrap();
 
         let expected = vec!(
-            QuoteSpan::Link(Handle::build_from_parts(vec!("Domain", "Accumulator", "Invariants")).unwrap()),
+            QuoteSpan::Link(Handle::build_from_parts(vec!(
+                "Domain".to_string(),
+                "Accumulator".to_string(),
+                "Invariants".to_string(),
+            )).unwrap()),
             QuoteSpan::Attribute("alias".to_string(), "Domain rules".to_string()),
             QuoteSpan::Attribute("toggle".to_string(), "".to_string()),
             QuoteSpan::Text("The accumulated value is always increasing when collecting new values.\n            See".to_string()),
-            QuoteSpan::Link(Handle::build_from_parts(vec!("Domain", "Other", "Rule")).unwrap()),
+            QuoteSpan::Link(Handle::build_from_parts(vec!(
+                "Domain".to_string(),
+                "Other".to_string(),
+                "Rule".to_string(),
+            )).unwrap()),
             QuoteSpan::Text("for more details.".to_string()),
         );
 

@@ -1,12 +1,11 @@
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
-use anyhow::{Result, anyhow, Context};
+use anyhow::{Result, anyhow};
 use crate::collector::file_matcher::FileTypeMatcher;
 use crate::collector::quote_parser::QuoteParser;
 use crate::collector::QuoteSpan;
-use crate::model::handle::Handle;
 use crate::model::knowledge::KnowledgeTree;
 use crate::model::note::{FileLocation, Note, NoteSpan};
 use crate::parser::{FileParser, Quote};
@@ -71,7 +70,7 @@ impl Collector {
         }
 
         let note = Note::new(
-            FileLocation::new(path, quote.line),
+            FileLocation::new_relative(path, quote.line),
             note_spans,
         );
 

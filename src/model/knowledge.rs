@@ -1,11 +1,14 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
+use std::ptr::hash;
 use std::string::ToString;
+use anyhow::Result;
 use crate::model::note::{FileLocation, NoteSpan};
 use super::handle::*;
 use super::note::Note;
 
 #[derive(Debug)]
 pub struct KnowledgeTree {
+    handle: Handle,
     attributes: HashMap<String, String>,
     mentions: HashSet<Handle>,
     notes: Vec<Note>,
@@ -14,8 +17,9 @@ pub struct KnowledgeTree {
 }
 
 impl KnowledgeTree {
-    pub fn empty() -> KnowledgeTree {
+    pub fn at(handle: Handle) -> KnowledgeTree {
         KnowledgeTree {
+            handle,
             attributes: Default::default(),
             mentions: Default::default(),
             notes: vec![],
@@ -24,6 +28,13 @@ impl KnowledgeTree {
         }
     }
 
+    pub fn empty() -> KnowledgeTree {
+        Self::at(Handle::ROOT)
+    }
+
+    pub fn handle(&self) -> &Handle {
+        &self.handle
+    }
     pub fn children(&self) -> &BTreeMap<HandlePart, Box<KnowledgeTree>> {
         &self.children
     }
@@ -47,12 +58,15 @@ impl KnowledgeTree {
     pub fn find_node_mut(&mut self, handle: &Handle) -> &mut KnowledgeTree {
         let mut node = self;
 
+        let mut temp_handle = Handle::ROOT;
+
         for p in handle.parts() {
+            temp_handle = temp_handle.join(p.clone()).unwrap(); //todo: this
             let children = &mut node.children;
             if children.contains_key(p) {
                 node = children.get_mut(p).unwrap();
             } else {
-                let new_node = KnowledgeTree::empty();
+                let new_node = KnowledgeTree::at(temp_handle.clone());
 
                 children.insert(p.clone(), Box::new(new_node));
 
@@ -107,6 +121,26 @@ impl KnowledgeTree {
 
         node.mentions.insert(from.clone());
     }
+
+    pub fn visit(&self, f: fn(&KnowledgeTree) -> Result<()>) -> Result<()> {
+        f(self)?;
+
+        for (_, n) in &self.children {
+            f(n)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn visit_mut(&mut self, mut f: fn(&mut KnowledgeTree) -> Result<()>) -> Result<()> {
+        f(self)?;
+
+        for (_, n) in &mut self.children {
+            f(n)?;
+        }
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -129,17 +163,17 @@ mod test {
         let handle2 = Handle::build_from_str("a/b/d").unwrap();
 
         let note1a = Note::new(
-            FileLocation::new("file1.go", 333),
+            FileLocation::new_relative("file1.go", 333),
             vec!(NoteSpan::Text("Note 1".to_string())),
         );
 
         let note1b = Note::new(
-            FileLocation::new("file1.go", 444),
+            FileLocation::new_relative("file1.go", 444),
             vec!(NoteSpan::Text("Note 1b".to_string())),
         );
 
         let note2 = Note::new(
-            FileLocation::new("file2.go", 333),
+            FileLocation::new_relative("file2.go", 333),
             vec!(NoteSpan::Text("Note 2".to_string())),
         );
 
@@ -161,12 +195,12 @@ mod test {
         let handle = Handle::build_from_str("a/b/c").unwrap();
 
         let note1 = Note::new(
-            FileLocation::new("file1.go", 333),
+            FileLocation::new_relative("file1.go", 333),
             vec![],
         );
 
         let note2 = Note::new(
-            FileLocation::new("file1.go", 444),
+            FileLocation::new_relative("file1.go", 444),
             vec![],
         );
 
@@ -177,7 +211,7 @@ mod test {
 
         assert!(node.notes.is_empty());
         assert_eq!(
-            vec!(FileLocation::new("file1.go", 333), FileLocation::new("file1.go", 444)),
+            vec!(FileLocation::new_relative("file1.go", 333), FileLocation::new_relative("file1.go", 444)),
             node.extra,
         )
     }

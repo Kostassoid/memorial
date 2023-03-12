@@ -1,7 +1,7 @@
 use crate::model::handle::Handle;
 
-mod collector;
-mod file_matcher;
+pub mod collector;
+pub mod file_matcher;
 mod quote_parser;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
