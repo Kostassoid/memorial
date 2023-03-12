@@ -10,7 +10,7 @@ pub struct KnowledgeTree {
     mentions: HashSet<Handle>,
     notes: Vec<Note>,
     extra: Vec<FileLocation>,
-    children: BTreeMap<HandlePart, Box<KnowledgeTree>>
+    children: BTreeMap<HandlePart, Box<KnowledgeTree>>,
 }
 
 impl KnowledgeTree {
@@ -122,31 +122,94 @@ mod test {
     }
 
     #[test]
-    fn knowledge_tree_adding_records() {
+    fn adding_non_empty_notes() {
+        let mut kt = KnowledgeTree::empty();
+
+        let handle1 = Handle::build_from_str("a/b/c").unwrap();
+        let handle2 = Handle::build_from_str("a/b/d").unwrap();
+
+        let note1a = Note::new(
+            FileLocation::new("file1.go", 333),
+            vec!(NoteSpan::Text("Note 1".to_string())),
+        );
+
+        let note1b = Note::new(
+            FileLocation::new("file1.go", 444),
+            vec!(NoteSpan::Text("Note 1b".to_string())),
+        );
+
+        let note2 = Note::new(
+            FileLocation::new("file2.go", 333),
+            vec!(NoteSpan::Text("Note 2".to_string())),
+        );
+
+        kt.add_note(&handle1, note1a.clone());
+        kt.add_note(&handle1, note1b.clone());
+        kt.add_note(&handle2, note2.clone());
+
+        assert!(kt.children.get("a").unwrap().children.get("b").unwrap().children.get("c").is_some());
+        assert!(kt.children.get("a").unwrap().children.get("b").unwrap().children.get("d").is_some());
+
+        assert_eq!(vec!(note1a, note1b), kt.find_node(&handle1).unwrap().notes);
+        assert_eq!(vec!(note2), kt.find_node(&handle2).unwrap().notes);
+    }
+
+    #[test]
+    fn adding_empty_notes() {
         let mut kt = KnowledgeTree::empty();
 
         let handle = Handle::build_from_str("a/b/c").unwrap();
 
-        let attributes = HashMap::from([("k1".to_string(), "v1".to_string())]);
-
         let note1 = Note::new(
-            FileLocation::new("domain.go", 333),
-            vec!(NoteSpan::Text("Facts".to_string())),
+            FileLocation::new("file1.go", 333),
+            vec![],
         );
 
         let note2 = Note::new(
-            FileLocation::new("test2.go", 333),
-            vec!(NoteSpan::Text("Facts 2".to_string())),
+            FileLocation::new("file1.go", 444),
+            vec![],
         );
 
-        kt.add_note(&handle,note1.clone());
-        kt.add_note(&handle,note2.clone());
+        kt.add_note(&handle, note1.clone());
+        kt.add_note(&handle, note2.clone());
 
-        kt.merge_attributes(&handle,attributes.clone());
+        let node = kt.find_node(&handle).unwrap();
 
-        assert_eq!(kt.children.len(), 1);
-        assert!(kt.children.get("a").unwrap().children.get("b").unwrap().children.get("c").is_some());
-        assert_eq!(vec!(note1, note2), kt.find_node(&handle).unwrap().notes);
-        assert_eq!(attributes, kt.find_node(&handle).unwrap().attributes)
+        assert!(node.notes.is_empty());
+        assert_eq!(
+            vec!(FileLocation::new("file1.go", 333), FileLocation::new("file1.go", 444)),
+            node.extra,
+        )
+    }
+
+    #[test]
+    fn merging_attributes() {
+        let mut kt = KnowledgeTree::empty();
+
+        let handle = Handle::build_from_str("a/b/c").unwrap();
+
+        let attributes1 = HashMap::from([
+            ("k1".to_string(), "v1".to_string()),
+            ("k2".to_string(), "v2".to_string()),
+        ]);
+        let attributes2 = HashMap::from([
+            ("k3".to_string(), "v3".to_string()),
+            ("k2".to_string(), "v2".to_string()),
+        ]);
+
+        kt.merge_attributes(&handle, attributes1.clone());
+        kt.merge_attributes(&handle, attributes2.clone());
+
+        let node = kt.find_node(&handle).unwrap();
+
+        assert!(node.notes.is_empty());
+        assert_eq!(
+            HashMap::from([
+                ("k1".to_string(), "v1".to_string()),
+                ("k2".to_string(), "v2".to_string()),
+                ("k3".to_string(), "v3".to_string()),
+            ]),
+            node.attributes,
+        )
     }
 }
