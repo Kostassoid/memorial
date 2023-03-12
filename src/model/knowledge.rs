@@ -1,8 +1,8 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
-use std::ptr::hash;
 use std::string::ToString;
 use anyhow::Result;
-use crate::model::note::{FileLocation, NoteSpan};
+use crate::model::file_location::FileLocation;
+use crate::model::note::NoteSpan;
 use super::handle::*;
 use super::note::Note;
 
@@ -145,7 +145,7 @@ impl KnowledgeTree {
 
 #[cfg(test)]
 mod test {
-    use crate::model::note::{FileLocation, NoteSpan};
+    use crate::model::note::NoteSpan;
     use super::*;
 
     #[test]

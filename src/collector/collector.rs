@@ -6,8 +6,9 @@ use anyhow::{Result, anyhow};
 use crate::collector::file_matcher::FileTypeMatcher;
 use crate::collector::quote_parser::QuoteParser;
 use crate::collector::QuoteSpan;
+use crate::model::file_location::FileLocation;
 use crate::model::knowledge::KnowledgeTree;
-use crate::model::note::{FileLocation, Note, NoteSpan};
+use crate::model::note::{Note, NoteSpan};
 use crate::parser::{FileParser, Quote};
 use crate::scanner::{File, FileScanner};
 
@@ -80,8 +81,8 @@ impl Collector {
         Ok(())
     }
 
-    pub fn knowledge(&self) -> &KnowledgeTree {
-        &self.knowledge
+    pub fn knowledge_mut(&mut self) -> &mut KnowledgeTree {
+        &mut self.knowledge
     }
 
     fn find_parser(&self, path: &PathBuf) -> Option<&Box<dyn FileParser>> {
@@ -115,7 +116,7 @@ mod test {
         let scanner = LocalFileScanner::new(config).unwrap();
         collector.scan(&scanner).unwrap();
 
-        let knowledge = collector.knowledge();
+        let knowledge = collector.knowledge_mut();
         println!("k = {knowledge:#?}");
     }
 }
