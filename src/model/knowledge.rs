@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::string::ToString;
-use crate::model::note::NoteSpan;
+use crate::model::note::{FileLocation, NoteSpan};
 use super::handle::*;
 use super::note::Note;
 
@@ -9,6 +9,7 @@ pub struct KnowledgeTree {
     attributes: HashMap<String, String>,
     mentions: HashSet<Handle>,
     notes: Vec<Note>,
+    extra: Vec<FileLocation>,
     children: BTreeMap<HandlePart, Box<KnowledgeTree>>
 }
 
@@ -18,6 +19,7 @@ impl KnowledgeTree {
             attributes: Default::default(),
             mentions: Default::default(),
             notes: vec![],
+            extra: vec![],
             children: Default::default(),
         }
     }
@@ -32,6 +34,14 @@ impl KnowledgeTree {
 
     pub fn mentions(&self) -> &HashSet<Handle> {
         &self.mentions
+    }
+
+    pub fn notes(&self) -> &Vec<Note> {
+        &self.notes
+    }
+
+    pub fn extra(&self) -> &Vec<FileLocation> {
+        &self.extra
     }
 
     pub fn find_node_mut(&mut self, handle: &Handle) -> &mut KnowledgeTree {
@@ -77,7 +87,11 @@ impl KnowledgeTree {
 
         let node = self.find_node_mut(handle);
 
-        node.notes.push(note);
+        if note.spans().is_empty() {
+            node.extra.push(note.location().clone());
+        } else {
+            node.notes.push(note);
+        }
     }
 
     pub fn merge_attributes(&mut self, handle: &Handle, attributes: HashMap<String, String>) {

@@ -39,4 +39,8 @@ impl Note {
     pub fn spans(&self) -> &Vec<NoteSpan> {
         &self.spans
     }
+
+    pub fn location(&self) -> &FileLocation {
+        &self.location
+    }
 }
