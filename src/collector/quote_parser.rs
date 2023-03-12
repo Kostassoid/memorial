@@ -20,7 +20,7 @@ impl QuoteParser {
                         let mut inner = p.into_inner();
                         Ok(QuoteSpan::Attribute(
                             inner.next().ok_or(anyhow!("Missing attribute key"))?.as_str().to_string(),
-                            inner.next().ok_or(anyhow!("Missing attribute value"))?.as_str().to_string()
+                            inner.next().map(|r| r.as_str()).unwrap_or("").to_string(),
                         ))
                     },
                     Rule::text => Ok(QuoteSpan::Text(p.as_str().to_string())),
@@ -41,7 +41,7 @@ mod tests {
     #[test]
     fn parse_quote() {
         let parsed = QuoteParser::parse_from_str(r#"
-            @[Domain/Accumulator/Invariants]{alias:Domain rules}
+            @[Domain/Accumulator/Invariants]{alias:Domain rules}{toggle}
             The accumulated value is always increasing when collecting new values.
             See @[Domain/Other/Rule] for more details.
        "#).unwrap();
@@ -49,6 +49,7 @@ mod tests {
         let expected = vec!(
             QuoteSpan::Link(Handle::build_from_parts(vec!("Domain", "Accumulator", "Invariants")).unwrap()),
             QuoteSpan::Attribute("alias".to_string(), "Domain rules".to_string()),
+            QuoteSpan::Attribute("toggle".to_string(), "".to_string()),
             QuoteSpan::Text("The accumulated value is always increasing when collecting new values.\n            See".to_string()),
             QuoteSpan::Link(Handle::build_from_parts(vec!("Domain", "Other", "Rule")).unwrap()),
             QuoteSpan::Text("for more details.".to_string()),

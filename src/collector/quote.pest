@@ -1,12 +1,12 @@
-root = _{ SOI ~ handle ~ span* ~ silent_eoi }
-span = _{ handle | attr | text }
+root = _{ SOI ~ handle ~ attr* ~ span* ~ silent_eoi }
+span = _{ handle | text }
 
 handle_body = { (!("]") ~ ANY)+ }
 handle      = { "@[" ~ handle_body ~ "]" }
 
 attr_key   = { (!(":" | "}") ~ ANY)+ }
 attr_value = { (!("}") ~ ANY)+ }
-attr       = { "{" ~ attr_key ~ ":" ~ attr_value ~ "}" }
+attr       = { "{" ~ attr_key ~ (":" ~ attr_value)? ~ "}" }
 
 text = { (!("{" | "@[") ~ ANY)+ }
 

@@ -13,7 +13,7 @@ impl MarkdownRenderer {
         node.children()
             .iter()
             .for_each(|(h, n)| {
-                rendered.add(&format!("{} {}", "#".repeat(level), h));
+                //rendered.add(&format!("{} {}", "#".repeat(level), h));
 
                 // todo: this
 
@@ -24,9 +24,9 @@ impl MarkdownRenderer {
 
 impl Renderer for MarkdownRenderer {
     fn render(&self, root: &KnowledgeTree) -> String {
-        let rendered = String::new();
+        let mut rendered = String::new();
 
-        rendered.add(&format!("# {}", self.title));
+        rendered = rendered.add(&format!("# {}", self.title));
 
         self.add_section(2, root);
 
