@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use crate::scanner::local::LocalConfig;
 
 pub enum Source {

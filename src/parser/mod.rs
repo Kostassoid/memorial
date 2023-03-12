@@ -9,6 +9,6 @@ pub struct Quote {
     pub line: usize,
 }
 
-pub trait QuoteParser {
-    fn extract_from_str(&self, source: &str) -> Result<Vec<Quote>>;
+pub trait FileParser {
+    fn parse_from_str(&self, source: &str) -> Result<Vec<Quote>>;
 }

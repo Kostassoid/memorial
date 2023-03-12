@@ -14,8 +14,6 @@ impl Handle {
 }
 
 impl Handle {
-    pub const ROOT_PART: &'static str = "";
-
     pub fn build_from_parts(parts: Vec<&str>) -> Result<Handle> {
         let parts: Vec<HandlePart> = parts.iter().map(|p| p.to_string()).collect();
 

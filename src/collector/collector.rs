@@ -4,16 +4,17 @@ use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use anyhow::{Result, anyhow, Context};
 use crate::collector::file_matcher::FileTypeMatcher;
-use crate::collector::note_parser::NoteParser;
+use crate::collector::quote_parser::QuoteParser;
+use crate::collector::QuoteSpan;
 use crate::model::handle::Handle;
 use crate::model::knowledge::KnowledgeTree;
 use crate::model::note::{FileLocation, Note, NoteSpan};
-use crate::parser::QuoteParser;
+use crate::parser::{FileParser, Quote};
 use crate::scanner::{File, FileScanner};
 
 pub struct Collector {
     knowledge: KnowledgeTree,
-    parsers: HashMap<FileTypeMatcher, Box<dyn QuoteParser>>,
+    parsers: HashMap<FileTypeMatcher, Box<dyn FileParser>>,
 }
 
 impl Collector {
@@ -24,7 +25,7 @@ impl Collector {
         }
     }
 
-    pub fn register_parser(&mut self, matcher: FileTypeMatcher, parser: Box<dyn QuoteParser>) {
+    pub fn register_parser(&mut self, matcher: FileTypeMatcher, parser: Box<dyn FileParser>) {
         self.parsers.insert(matcher, parser);
     }
 
@@ -35,31 +36,47 @@ impl Collector {
 
         //todo: parallelize
         for f in rx {
-            let path = &f.path();
+            let path = f.path();
             let parser = self
-                .find_parser(path)
-                .ok_or(anyhow!("Don't know how to parse {}", path.display()))?;
+                .find_parser(&path)
+                .ok_or(anyhow!("Don't know how to parse {}", &path.display()))?;
 
-            let quotes = parser.extract_from_str(&f.contents()?)?;
-            quotes.into_iter().for_each(|q| {
-                match NoteParser::parse_from_str(&q.body) {
-                    Ok(mut parts) => {
-                        let handle = match parts.remove(0) {
-                            NoteSpan::Link(h) => Some(h),
-                            _ => None
-                        }.unwrap(); //todo: handle more gracefully
+            let quotes = parser.parse_from_str(&f.contents()?)?;
 
-                        let note = Note::new(
-                            FileLocation::new(path, q.line),
-                            parts,
-                            vec![],
-                        );
-                        self.knowledge.add(handle.clone(), note);
-                    },
-                    Err(_) => { /* ignore for now */ }
-                }
-            })
+            let _errors:Vec<anyhow::Error> = quotes.into_iter()
+                .filter_map(|q| { self.process_quote(q, path.clone()).err() })
+                .collect();
         }
+
+        Ok(())
+    }
+
+    fn process_quote(&mut self, quote: Quote, path: PathBuf) -> Result<()> {
+        let mut parts = QuoteParser::parse_from_str(&quote.body)?;
+
+        let handle = match parts.remove(0) {
+            QuoteSpan::Link(h) => Some(h),
+            _ => None
+        }.unwrap(); //todo: handle more gracefully
+
+        let mut attributes: HashMap<String, String> = Default::default();
+        let mut note_spans: Vec<NoteSpan> = Default::default();
+
+        for p in parts {
+            match p {
+                QuoteSpan::Attribute(k, v) => { attributes.insert(k, v); },
+                QuoteSpan::Link(h) => note_spans.push(NoteSpan::Link(h)),
+                QuoteSpan::Text(s) => note_spans.push(NoteSpan::Text(s)),
+            }
+        }
+
+        let note = Note::new(
+            FileLocation::new(path, quote.line),
+            note_spans,
+            vec![],
+        );
+
+        self.knowledge.add(handle, note, attributes);
 
         Ok(())
     }
@@ -68,7 +85,7 @@ impl Collector {
         &self.knowledge
     }
 
-    fn find_parser(&self, path: &PathBuf) -> Option<&Box<dyn QuoteParser>> {
+    fn find_parser(&self, path: &PathBuf) -> Option<&Box<dyn FileParser>> {
         // todo: find an efficient way
         self.parsers
             .iter()

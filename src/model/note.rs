@@ -19,7 +19,6 @@ impl FileLocation {
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub enum NoteSpan {
     Link(Handle),
-    Attribute(String, String),
     Text(String),
 }
 

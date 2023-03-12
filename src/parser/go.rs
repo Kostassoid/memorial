@@ -1,14 +1,14 @@
 use pest::Parser as P;
 use pest_derive::Parser;
 use anyhow::Result;
-use crate::parser::{Quote, QuoteParser};
+use crate::parser::{Quote, FileParser};
 
 #[derive(Parser)]
 #[grammar = "src/parser/go.pest"]
 pub struct GoParser;
 
-impl QuoteParser for GoParser {
-    fn extract_from_str(&self, source: &str) -> Result<Vec<Quote>> {
+impl FileParser for GoParser {
+    fn parse_from_str(&self, source: &str) -> Result<Vec<Quote>> {
         let parsed = GoParser::parse(Rule::root, source)?;
         Ok(parsed
             .filter_map(|p| {
@@ -32,7 +32,7 @@ mod tests {
 
     #[test]
     fn parse_go() {
-        let parsed = GoParser{}.extract_from_str(r#"
+        let parsed = GoParser{}.parse_from_str(r#"
         package test
 
         /*
