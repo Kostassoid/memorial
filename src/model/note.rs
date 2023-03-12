@@ -25,16 +25,18 @@ pub enum NoteSpan {
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Note {
     location: FileLocation,
-    content: Vec<NoteSpan>,
-    mentions: Vec<Handle>
+    spans: Vec<NoteSpan>,
 }
 
 impl Note {
-    pub fn new(location: FileLocation, content: Vec<NoteSpan>, mentions: Vec<Handle>) -> Note {
+    pub fn new(location: FileLocation, spans: Vec<NoteSpan>) -> Note {
         Note {
             location,
-            content,
-            mentions,
+            spans,
         }
+    }
+
+    pub fn spans(&self) -> &Vec<NoteSpan> {
+        &self.spans
     }
 }

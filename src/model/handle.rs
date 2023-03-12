@@ -2,7 +2,7 @@ use anyhow::{Result, anyhow};
 
 pub type HandlePart = String;
 
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone, Hash)]
 pub struct Handle {
     parts: Vec<HandlePart>
 }

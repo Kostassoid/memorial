@@ -73,10 +73,10 @@ impl Collector {
         let note = Note::new(
             FileLocation::new(path, quote.line),
             note_spans,
-            vec![],
         );
 
-        self.knowledge.add(handle, note, attributes);
+        self.knowledge.add_note(&handle, note);
+        self.knowledge.merge_attributes(&handle, attributes);
 
         Ok(())
     }

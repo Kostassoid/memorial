@@ -119,10 +119,13 @@ mod test {
 
         let valid_files: Vec<_> = rx.into_iter().collect();
 
-        assert_eq!(1, valid_files.len());
+        assert_eq!(2, valid_files.len());
         assert_eq!(
-            r"src\tests\cases\go\test.go",
-            valid_files.get(0).unwrap().local_path.to_str().unwrap(),
+            vec!(
+                r"src\tests\cases\go\app.go",
+                r"src\tests\cases\go\domain.go",
+            ),
+            valid_files.iter().map(|f| f.local_path.to_str().unwrap()).collect::<Vec<_>>(),
         );
     }
 }

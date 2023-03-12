@@ -1,11 +1,13 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::string::ToString;
+use crate::model::note::NoteSpan;
 use super::handle::*;
 use super::note::Note;
 
 #[derive(Debug)]
 pub struct KnowledgeTree {
     attributes: HashMap<String, String>,
+    mentions: HashSet<Handle>,
     notes: Vec<Note>,
     children: BTreeMap<HandlePart, Box<KnowledgeTree>>
 }
@@ -14,6 +16,7 @@ impl KnowledgeTree {
     pub fn empty() -> KnowledgeTree {
         KnowledgeTree {
             attributes: Default::default(),
+            mentions: Default::default(),
             notes: vec![],
             children: Default::default(),
         }
@@ -25,6 +28,10 @@ impl KnowledgeTree {
 
     pub fn attributes(&self) -> &HashMap<String, String> {
         &self.attributes
+    }
+
+    pub fn mentions(&self) -> &HashSet<Handle> {
+        &self.mentions
     }
 
     pub fn find_node_mut(&mut self, handle: &Handle) -> &mut KnowledgeTree {
@@ -60,14 +67,31 @@ impl KnowledgeTree {
         Some(node)
     }
 
-    pub fn add(&mut self, handle: Handle, note: Note, attributes: HashMap<String, String>) -> () {
-        let node = self.find_node_mut(&handle);
+    pub fn add_note(&mut self, handle: &Handle, note: Note) {
+        for s in note.spans() {
+            match s {
+                NoteSpan::Link(h) => self.register_mention(&h, handle),
+                _ => {}
+            }
+        }
+
+        let node = self.find_node_mut(handle);
 
         node.notes.push(note);
+    }
+
+    pub fn merge_attributes(&mut self, handle: &Handle, attributes: HashMap<String, String>) {
+        let node = self.find_node_mut(handle);
 
         for (k, v) in attributes {
             node.attributes.insert(k, v);
         }
+    }
+
+    fn register_mention(&mut self, to: &Handle, from: &Handle) {
+        let node = self.find_node_mut(to);
+
+        node.mentions.insert(from.clone());
     }
 }
 
@@ -92,19 +116,19 @@ mod test {
         let attributes = HashMap::from([("k1".to_string(), "v1".to_string())]);
 
         let note1 = Note::new(
-            FileLocation::new("test.go", 333),
+            FileLocation::new("domain.go", 333),
             vec!(NoteSpan::Text("Facts".to_string())),
-            vec![],
         );
 
         let note2 = Note::new(
             FileLocation::new("test2.go", 333),
             vec!(NoteSpan::Text("Facts 2".to_string())),
-            vec![],
         );
 
-        kt.add(handle.clone(),note1.clone(), attributes.clone());
-        kt.add(handle.clone(),note2.clone(), Default::default());
+        kt.add_note(&handle,note1.clone());
+        kt.add_note(&handle,note2.clone());
+
+        kt.merge_attributes(&handle,attributes.clone());
 
         assert_eq!(kt.children.len(), 1);
         assert!(kt.children.get("a").unwrap().children.get("b").unwrap().children.get("c").is_some());

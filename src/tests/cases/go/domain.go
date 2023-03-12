@@ -26,9 +26,3 @@ func (a *Accumulator) Reset() {
     */
     a.Value = 0
 }
-
-func main() {
-    acc := Accumulator{ID: "abc", Value: 0}
-    _ = acc.Collect(5)
-    println(acc.Value)
-}
