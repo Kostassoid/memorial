@@ -42,11 +42,7 @@ impl FileLocation {
     }
 
     pub fn is_relative(&self) -> bool {
-        if let FilePath::Relative(_) = &self.path {
-            true
-        } else {
-            false
-        }
+        matches!(&self.path, FilePath::Relative(_))
     }
 
     pub fn to_absolute_url(&self, prefix: &Url) -> Result<FileLocation> {

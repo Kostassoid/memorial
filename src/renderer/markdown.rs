@@ -2,6 +2,7 @@ use std::fmt::Write;
 use std::time::SystemTime;
 use anyhow::Result;
 use time::OffsetDateTime;
+use crate::model::attributes;
 use crate::model::handle::Handle;
 use crate::model::knowledge::KnowledgeTree;
 use crate::model::note::{Note, NoteSpan};
@@ -75,7 +76,7 @@ impl MarkdownRenderer {
 
     fn resolve_node_title(root: &KnowledgeTree, handle: &Handle) -> String {
         root.find_node(handle)
-            .map(|n| n.attributes().get("alias"))
+            .map(|n| n.attributes().get(attributes::ALIAS))
             .flatten()
             .map(|s| s.to_string())
             .unwrap_or(handle.to_string())
@@ -138,7 +139,7 @@ mod test {
 
         knowledge.merge_attributes(
             &Handle::ROOT,
-            HashMap::from([("alias".to_string(), renderer.title.clone())]),
+            HashMap::from([(attributes::ALIAS.to_string(), renderer.title.clone())]),
         );
 
         let rendered = renderer.render(&knowledge).unwrap();

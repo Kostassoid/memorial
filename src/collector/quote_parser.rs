@@ -35,6 +35,7 @@ impl QuoteParser {
 
 #[cfg(test)]
 mod tests {
+    use crate::model::attributes;
     use super::*;
 
     #[test]
@@ -51,7 +52,7 @@ mod tests {
                 "Accumulator".to_string(),
                 "Invariants".to_string(),
             )).unwrap()),
-            QuoteSpan::Attribute("alias".to_string(), "Domain rules".to_string()),
+            QuoteSpan::Attribute(attributes::ALIAS.to_string(), "Domain rules".to_string()),
             QuoteSpan::Attribute("toggle".to_string(), "".to_string()),
             QuoteSpan::Text("The accumulated value is always increasing when collecting new values.\n            See".to_string()),
             QuoteSpan::Link(Handle::build_from_parts(vec!(
