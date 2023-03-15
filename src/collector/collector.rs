@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use anyhow::{Result, anyhow};
+use crate::api::events::Event;
 use crate::collector::file_matcher::FileTypeMatcher;
 use crate::collector::quote_parser::QuoteParser;
 use crate::collector::QuoteSpan;
@@ -13,13 +14,15 @@ use crate::parser::{FileParser, Quote};
 use crate::scanner::{File, FileScanner};
 
 pub struct Collector {
+    skip_unknown_files: bool,
     knowledge: KnowledgeTree,
     parsers: HashMap<FileTypeMatcher, Box<dyn FileParser>>,
 }
 
 impl Collector {
-    pub fn new() -> Collector {
+    pub fn new(skip_unknown_files: bool) -> Collector {
         Collector{
+            skip_unknown_files,
             knowledge: KnowledgeTree::empty(),
             parsers: Default::default(),
         }
@@ -29,17 +32,28 @@ impl Collector {
         self.parsers.insert(matcher, parser);
     }
 
-    pub fn scan<X: File>(&mut self, scanner: &dyn FileScanner<F=X>) -> Result<()> {
+    pub fn scan<X: File>(&mut self, scanner: &dyn FileScanner<F=X>, event_handler: Sender<Event>) -> Result<()> {
         let (tx, rx): (Sender<X>, Receiver<X>) = mpsc::channel();
+
+        event_handler.send(Event::ScanStarted(".".into()))?;
 
         scanner.scan(tx)?;
 
         //todo: parallelize
         for f in rx {
             let path = f.path();
-            let parser = self
-                .find_parser(&path)
-                .ok_or(anyhow!("Don't know how to parse {}", &path.display()))?;
+
+            event_handler.send(Event::ParsingStarted(path.clone()))?;
+
+            let parser = match self
+                .find_parser(&path) {
+                Some(p) => p,
+                _ if self.skip_unknown_files => {
+                    event_handler.send(Event::ParsingWarning("Don't know how to parse".to_string()))?;
+                    continue;
+                },
+                _ => return Err(anyhow!("Don't know how to parse {}", &path.display()))
+            };
 
             let quotes = parser.parse_from_str(&f.contents()?)?;
 

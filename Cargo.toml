@@ -13,3 +13,8 @@ pest = "2.0"
 pest_derive = "2.0"
 url = "2.3.1"
 time = { version = "0.3.11", features = ["formatting"] }
+toml = "0.7.2"
+clap = "4.1.6"
+serde = "1"
+serde_derive = "1"
+derive-getters = "0.2.0"

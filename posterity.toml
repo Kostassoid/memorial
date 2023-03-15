@@ -1,0 +1,18 @@
+title = "Posterity Implementation Notes"
+
+[scanner]
+# skip-unknown-files = true
+
+[scanner.local]
+# root = "."
+include = [
+    "src/**/*.rs",
+]
+# exclude = []
+
+[processor.links]
+target = "https://github.com/Kostassoid/posterity"
+
+[output.markdown]
+path = "IMPLEMENTATION.md"
+toc = true

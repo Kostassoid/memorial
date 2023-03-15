@@ -1,4 +1,4 @@
-mod markdown;
+pub mod markdown;
 
 use anyhow::Result;
 use crate::model::knowledge::KnowledgeTree;

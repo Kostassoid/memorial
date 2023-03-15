@@ -2,7 +2,6 @@ use std::path::PathBuf;
 use std::sync::mpsc::Sender;
 use anyhow::Result;
 
-pub mod config;
 pub mod local;
 mod path_filter;
 

@@ -7,6 +7,7 @@ func main() {
     _Primary uses:_
     - Demo Posterity features
     - Testing
+      - Including **Markdown** rendering
     */
     acc := Accumulator{ID: "abc", Value: 0} //@[Domain/Accumulator/Invariants]
     _ = acc.Collect(5)
