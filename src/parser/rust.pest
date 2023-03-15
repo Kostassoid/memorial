@@ -1,0 +1,18 @@
+root = _{ SOI ~ line* ~ EOI }
+line = _{ string | other }
+
+other = ${ !(string) ~ ANY }
+
+WHITESPACE = _{ " " | "\t" | NEWLINE }
+
+line_comment_body  = { (!(NEWLINE) ~ ANY)* }
+block_comment_body = { (!("*/") ~ ANY)* }
+line_comment  = _{ "//" ~ line_comment_body }
+block_comment = _{ "/*" ~ block_comment_body ~ "*/"}
+COMMENT       = ${ line_comment | block_comment }
+
+string = ${
+  PUSH("\"") ~ inner_string ~ POP
+  | "r" ~ PUSH("#"*) ~ "\"" ~ inner_string ~ "\"" ~ POP
+}
+inner_string = @{ (!(PEEK) ~ ANY)* }

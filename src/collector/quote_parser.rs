@@ -41,7 +41,7 @@ mod tests {
     #[test]
     fn parse_quote() {
         let parsed = QuoteParser::parse_from_str(r#"
-            @[Domain/Accumulator/Invariants]{alias:Domain rules}{toggle}
+            @[Domain/Accumulator/Invariants]{title:Domain rules}{toggle}
             The accumulated value is always increasing when collecting new values.
             See @[Domain/Other/Rule] for more details.
        "#).unwrap();
@@ -52,7 +52,7 @@ mod tests {
                 "Accumulator".to_string(),
                 "Invariants".to_string(),
             )).unwrap()),
-            QuoteSpan::Attribute(attributes::ALIAS.to_string(), "Domain rules".to_string()),
+            QuoteSpan::Attribute(attributes::TITLE.to_string(), "Domain rules".to_string()),
             QuoteSpan::Attribute("toggle".to_string(), "".to_string()),
             QuoteSpan::Text("The accumulated value is always increasing when collecting new values.\n            See".to_string()),
             QuoteSpan::Link(Handle::build_from_parts(vec!(

@@ -1,4 +1,5 @@
 pub mod go;
+pub mod rust;
 
 use anyhow::Result;
 

@@ -12,8 +12,6 @@ pub struct LocalFile {
 
 pub struct LocalFileScanner {
     root: PathBuf,
-    include: Vec<String>,
-    exclude: Vec<String>,
     filter: PathFilter,
 }
 
@@ -30,8 +28,6 @@ impl LocalFileScanner {
 
         Ok(LocalFileScanner {
             root: root.as_ref().to_path_buf(),
-            include,
-            exclude,
             filter,
         })
     }

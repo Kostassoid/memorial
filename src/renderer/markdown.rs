@@ -1,20 +1,21 @@
 use std::fmt::Write;
 use std::time::SystemTime;
-use anyhow::{Context, Result};
+use anyhow::Result;
 use time::OffsetDateTime;
 use crate::model::attributes;
 use crate::model::file_location::FileLocation;
-use crate::model::handle::{Handle, HandlePart};
+use crate::model::handle::Handle;
 use crate::model::knowledge::KnowledgeTree;
 use crate::model::note::{Note, NoteSpan};
 use crate::renderer::Renderer;
+use crate::renderer::staging_fs::{StagingFile, StagingFS};
 
 pub struct MarkdownRenderer {
 }
 
 struct RendererSession<'a> {
     root: &'a KnowledgeTree,
-    rendered: String,
+    out: &'a mut StagingFile,
 }
 
 impl MarkdownRenderer {
@@ -24,16 +25,16 @@ impl MarkdownRenderer {
 }
 
 impl <'a> RendererSession<'a> {
-    fn render(mut self) -> Result<String> {
-        self.render_node(1, self.root, )?;
+    fn render(mut self) -> Result<()> {
+        self.render_node(1, self.root)?;
 
         self.render_footer()?;
 
-        Ok(self.rendered)
+        Ok(())
     }
 
     fn w<'b, S: Into<&'b str>>(&mut self, s: S) -> Result<()> {
-        self.rendered.write_str(s.into())?; // anyhow vs fmt::Result weirdness
+        self.out.write_str(s.into())?; // anyhow vs fmt::Result weirdness
         Ok(())
     }
 
@@ -116,7 +117,7 @@ impl <'a> RendererSession<'a> {
 
     fn resolve_node_title(&self, handle: &Handle) -> String {
         self.root.find_node(handle)
-            .map(|n| n.attributes().get(attributes::ALIAS))
+            .map(|n| n.attributes().get(attributes::TITLE))
             .flatten()
             .map(|s| s.to_string())
             .unwrap_or(handle.parts().last().unwrap_or(&String::from("(root)")).to_string())
@@ -124,10 +125,10 @@ impl <'a> RendererSession<'a> {
 }
 
 impl Renderer for MarkdownRenderer {
-    fn render(&self, root: &KnowledgeTree) -> Result<String> {
+    fn render(&self, root: &KnowledgeTree, out: &mut StagingFile) -> Result<()> {
         RendererSession {
             root,
-            rendered: String::new(),
+            out,
         }.render()
     }
 }
@@ -136,41 +137,45 @@ impl Renderer for MarkdownRenderer {
 mod test {
     use std::collections::HashMap;
     use std::env;
+    use crate::api::events::StubEventHandler;
     use crate::collector::collector::Collector;
     use crate::collector::file_matcher::FileTypeMatcher;
     use crate::model::handle::Handle;
     use super::*;
-    use crate::scanner::local::{LocalConfig, LocalFileScanner};
+    use crate::scanner::local::LocalFileScanner;
     use crate::parser::go::GoParser;
 
     // todo: don't have to use real files
     #[test]
     fn render_from_local_files() {
-        let config = LocalConfig::new(
+        let mut collector = Collector::new(false);
+        collector.register_parser(FileTypeMatcher::Extension("go".to_string()), Box::new(GoParser {}));
+
+        let scanner = LocalFileScanner::new(
             env::current_dir().unwrap(),
             vec!("src/tests/**/*.go".into()),
             vec!("**/*bad*".into()),
-        );
+        ).unwrap();
 
-        let mut collector = Collector::new();
-        collector.register_parser(FileTypeMatcher::Extension("go".to_string()), Box::new(GoParser {}));
+        let mut event_handler = StubEventHandler{ events: vec![] };
 
-        let scanner = LocalFileScanner::new(config).unwrap();
-        collector.scan(&scanner).unwrap();
+        collector.scan(&scanner, &mut event_handler).unwrap();
 
         let knowledge = collector.knowledge_mut();
 
         knowledge.merge_attributes(
             &Handle::ROOT,
             HashMap::from([
-                (attributes::ALIAS.to_string(), "Big Nice Title".to_string()),
+                (attributes::TITLE.to_string(), "Big Nice Title".to_string()),
                 (attributes::APP_VERSION.to_string(), "v0.1.0".to_string()),
             ]),
         );
 
         let renderer = MarkdownRenderer::new();
 
-        let rendered = renderer.render(&knowledge).unwrap();
-        println!("{}", rendered);
+        let mut fs = StagingFS::new();
+
+        let rendered = renderer.render(&knowledge, fs.open_as_new("test")).unwrap();
+        fs.flush_to_stdout().unwrap();
     }
 }

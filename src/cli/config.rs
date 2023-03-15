@@ -1,15 +1,14 @@
 use std::path::Path;
 use anyhow::{anyhow, Context, Result};
 use serde_derive::{Deserialize};
-use derive_getters::{Getters, Dissolve};
-
-use crate::scanner;
+use derive_getters::Getters;
 
 #[derive(Deserialize, Debug, Getters)]
 pub struct Config {
     title: String,
     scanner: Scanner,
     processor: Processor,
+    output: Output,
 }
 
 #[derive(Deserialize, Debug, Getters)]
