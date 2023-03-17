@@ -100,7 +100,7 @@ impl <'a> RendererSession<'a> {
     }
 
     fn format_location(l: &FileLocation) -> String {
-        format!("[{} (line {})]({})\n", l.path(), l.line(), l.path())
+        format!("[{} (line {})]({})\n", l.title(), l.line(), l.path())
     }
 
     fn format_link(&self, h: &Handle) -> String {

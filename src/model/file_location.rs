@@ -21,16 +21,23 @@ impl Display for FilePath {
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct FileLocation {
+    title: String,
     path: FilePath,
     line: usize,
 }
 
 impl FileLocation {
     pub fn new_relative<P: Into<PathBuf>>(path: P, line: usize) -> FileLocation {
+        let pb = path.into();
         FileLocation {
-            path: FilePath::Relative(path.into()),
+            title: pb.to_str().unwrap().to_string(),
+            path: FilePath::Relative(pb),
             line,
         }
+    }
+
+    pub fn title(&self) -> &str {
+        &self.title
     }
 
     pub fn path(&self) -> &FilePath {
@@ -48,6 +55,7 @@ impl FileLocation {
     pub fn to_absolute_url(&self, prefix: &Url) -> Result<FileLocation> {
         match &self.path {
             FilePath::Relative(pb) => Ok(FileLocation {
+                title: self.title.clone(),
                 path: FilePath::AbsoluteUrl(
                     prefix.join(pb.to_str().ok_or(anyhow!("Can't convert path to string"))?)?
                 ),

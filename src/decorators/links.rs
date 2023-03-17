@@ -10,7 +10,8 @@ use crate::model::file_location::{FileLocation, FilePath};
 use crate::model::knowledge::KnowledgeTree;
 
 pub struct LinksDecorator {
-    f: Box<dyn Fn(&PathBuf, usize) -> Result<Url>>
+    root: String,
+    format: String,
 }
 
 const DEFAULT_FORMAT: &str = "{root}/{path}";
@@ -24,21 +25,13 @@ impl LinksDecorator {
         let normalized_root = root.trim_end_matches('/').to_string();
 
         Ok(LinksDecorator {
-            f: Box::new(move |p, l| {
-                let line_str = l.to_string();
-                let vars: HashMap<String, &str> = HashMap::from([
-                    ("root".to_string(), normalized_root.as_str()),
-                    ("path".to_string(), p.to_str().unwrap()),
-                    ("line".to_string(), &line_str),
-                ]);
-
-                Ok(Url::parse(&format.format(&vars)?)?)
-            })
+            root: root.trim_end_matches('/').to_string(),
+            format,
         })
     }
 
     fn resolve_format(root: &str) -> Option<String> {
-        if root.contains("github.com") {
+        if root.contains("github.com") || root.contains("gitlab.com") {
             return Some("{root}/blob/master/{path}#L{line}".to_string())
         }
 
@@ -48,7 +41,15 @@ impl LinksDecorator {
     fn wrap(&self, l: &mut FileLocation) -> Result<()> {
         match l.path() {
             FilePath::Relative(p) => {
-                let url = (self.f)(p, l.line())?;
+                let line_str = l.line().to_string();
+                let vars: HashMap<String, &str> = HashMap::from([
+                    ("root".to_string(), self.root.as_str()),
+                    ("path".to_string(), p.to_str().unwrap()),
+                    ("line".to_string(), &line_str),
+                ]);
+
+                let url = Url::parse(&self.format.format(&vars)?)?;
+
                 l.replace_path(FilePath::AbsoluteUrl(url));
             },
             _ => {}
