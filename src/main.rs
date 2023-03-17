@@ -2,6 +2,7 @@ mod model;
 mod scanner;
 mod parser;
 mod collector;
+mod decorators;
 mod renderer;
 mod api;
 mod cli;

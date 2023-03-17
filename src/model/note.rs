@@ -28,4 +28,8 @@ impl Note {
     pub fn location(&self) -> &FileLocation {
         &self.location
     }
+
+    pub fn location_mut(&mut self) -> &mut FileLocation {
+        &mut self.location
+    }
 }

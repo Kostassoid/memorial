@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
+use std::error::Error;
 use std::string::ToString;
 use anyhow::Result;
 use crate::model::file_location::FileLocation;
@@ -51,8 +52,16 @@ impl KnowledgeTree {
         &self.notes
     }
 
+    pub fn notes_mut(&mut self) -> &mut Vec<Note> {
+        &mut self.notes
+    }
+
     pub fn extra(&self) -> &Vec<FileLocation> {
         &self.extra
+    }
+
+    pub fn extra_mut(&mut self) -> &mut Vec<FileLocation> {
+        &mut self.extra
     }
 
     pub fn find_node_mut(&mut self, handle: &Handle) -> &mut KnowledgeTree {
@@ -122,21 +131,23 @@ impl KnowledgeTree {
         node.mentions.insert(from.clone());
     }
 
-    pub fn visit(&self, f: fn(&KnowledgeTree) -> Result<()>) -> Result<()> {
+    pub fn visit<F>(&self, f: &F) -> Result<()>
+        where F: Fn(&KnowledgeTree) -> Result<()> {
         f(self)?;
 
         for (_, n) in &self.children {
-            f(n)?;
+            n.visit(f)?;
         }
 
         Ok(())
     }
 
-    pub fn visit_mut(&mut self, mut f: fn(&mut KnowledgeTree) -> Result<()>) -> Result<()> {
+    pub fn visit_mut<F>(&mut self, f: &F) -> Result<()>
+        where F: Fn(&mut KnowledgeTree) -> Result<()> {
         f(self)?;
 
         for (_, n) in &mut self.children {
-            f(n)?;
+            n.visit_mut(f)?;
         }
 
         Ok(())

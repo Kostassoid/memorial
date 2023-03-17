@@ -3,10 +3,12 @@ use std::io::stdout;
 use std::path::PathBuf;
 use anyhow::{Context, Result};
 use clap::{Arg, ArgAction, Command};
+use url::Url;
 use crate::api::events::{Event, EventHandler};
 use crate::cli::config::{Config, MarkdownOutput};
 use crate::collector::collector::Collector;
 use crate::collector::file_matcher::FileTypeMatcher;
+use crate::decorators::{Decorator, links, meta};
 use crate::renderer::markdown::MarkdownRenderer;
 use crate::scanner::local::LocalFileScanner;
 use crate::parser::go::GoParser;
@@ -24,8 +26,8 @@ impl App {
         /*@[CLI]
         The application is primarily designed to be run automatically (e.g. as a pre-commit hook or during CI).
         Because of that reason and to emphasize using the code and VCS as much as possible (e.g. vs bash history),
-        the only argument for the CLI application for now is just a path to the configuration. Which is
-        also optional.
+        the only argument for the CLI application for now is just a path to the configuration file.
+        Which is also optional.
         */
         let args = Command::new("Posterity")
             .arg(
@@ -66,11 +68,22 @@ impl App {
         collector.register_parser(FileTypeMatcher::Extension("go".to_string()), Box::new(GoParser {}));
         collector.register_parser(FileTypeMatcher::Extension("rs".to_string()), Box::new(RustParser {}));
 
+        let decorators:Vec<Box<dyn Decorator>> = vec!(
+            Box::new(meta::MetaDecorator {
+                title: self.config.title().clone()
+            }),
+            Box::new(links::LinksDecorator::new(
+                &Url::parse(self.config.processor().links().as_ref().unwrap().target()).unwrap()
+            )),
+        );
+
         let mut fs = StagingFS::new();
 
         let renderer = MarkdownRenderer::new();
 
         collector.scan(&scanner, &mut self)?;
+
+        decorators.iter().for_each(|d| d.decorate(collector.knowledge_mut()).unwrap());
 
         println!("Writing to {}", self.config.output().markdown().path());
 

@@ -56,4 +56,8 @@ impl FileLocation {
             _ => Err(anyhow!("Can't convert non-relative path to absolute Url"))
         }
     }
+
+    pub fn replace_path(&mut self, path: FilePath) {
+        self.path = path;
+    }
 }
