@@ -5,7 +5,7 @@ use anyhow::{Context, Result};
 use clap::{Arg, ArgAction, Command};
 use url::Url;
 use crate::api::events::{Event, EventHandler};
-use crate::cli::config::{Config, MarkdownOutput};
+use crate::cli::config::{Config, MarkdownOutput, Scanner};
 use crate::collector::collector::Collector;
 use crate::collector::file_matcher::FileTypeMatcher;
 use crate::decorators::{Decorator, links, meta};
@@ -15,9 +15,10 @@ use crate::parser::go::GoParser;
 use crate::parser::rust::RustParser;
 use crate::renderer::Renderer;
 use crate::renderer::staging_fs::StagingFS;
+use crate::scanner::FileScanner;
 
 pub struct App {
-    config: Config
+    config: Config,
 }
 
 //@[CLI]{title:CLI application}{do-not-collect}
@@ -51,31 +52,11 @@ impl App {
     }
 
     pub fn run(mut self) -> Result<()> {
-        let scanner_config = self.config.scanner().local();
-        let scanner = LocalFileScanner::new(
-            scanner_config.root().as_ref()
-                .map(|r| PathBuf::from(r))
-                .unwrap_or(env::current_dir()?),
-            scanner_config.include().clone(),
-            scanner_config.exclude().as_ref()
-                .map(|v| v.clone())
-                .unwrap_or(vec![]),
-        ).unwrap();
+        let scanner = self.build_scanner()?;
 
-        let mut collector = Collector::new(
-            self.config.scanner().skip_unknown_files().unwrap_or(true)
-        );
-        collector.register_parser(FileTypeMatcher::Extension("go".to_string()), Box::new(GoParser {}));
-        collector.register_parser(FileTypeMatcher::Extension("rs".to_string()), Box::new(RustParser {}));
+        let mut collector = self.build_collector()?;
 
-        let decorators:Vec<Box<dyn Decorator>> = vec!(
-            Box::new(meta::MetaDecorator {
-                title: self.config.title().clone()
-            }),
-            Box::new(links::LinksDecorator::new(
-                &Url::parse(self.config.processor().links().as_ref().unwrap().target()).unwrap()
-            )),
-        );
+        let decorators = self.build_decorators()?;
 
         let mut fs = StagingFS::new();
 
@@ -96,6 +77,53 @@ impl App {
         println!("Done!");
 
         Ok(())
+    }
+
+    fn build_scanner(&self) -> Result<impl FileScanner> {
+        let scanner_config = self.config.scanner().local();
+
+        let root = scanner_config.root().as_ref()
+            .map(|r| PathBuf::from(r))
+            .unwrap_or(env::current_dir()?);
+
+        Ok(LocalFileScanner::new(
+            root,
+            scanner_config.include().clone(),
+            scanner_config.exclude().as_ref()
+                .map(|v| v.clone())
+                .unwrap_or(vec![]),
+        )?)
+    }
+
+    fn build_collector(&self) -> Result<Collector> {
+        let mut collector = Collector::new(
+            self.config.scanner().skip_unknown_files().unwrap_or(true)
+        );
+        collector.register_parser(FileTypeMatcher::Extension("go".to_string()), Box::new(GoParser {}));
+        collector.register_parser(FileTypeMatcher::Extension("rs".to_string()), Box::new(RustParser {}));
+
+        Ok(collector)
+    }
+
+    fn build_decorators(&self) -> Result<Vec<Box<dyn Decorator>>> {
+        let mut decorators: Vec<Box<dyn Decorator>> = vec!(
+            Box::new(meta::MetaDecorator {
+                title: self.config.title().clone()
+            })
+        );
+
+        if let Some(l) = self.config.decorators().external_links() {
+            // let url = Url::parse(
+            //     &format!("{}/", l.root().trim_end_matches('/'))
+            // )?;
+
+            decorators.push(Box::new(links::LinksDecorator::new(
+                l.root().to_string(),
+                l.format().clone(),
+            )?));
+        };
+
+        Ok(decorators)
     }
 }
 

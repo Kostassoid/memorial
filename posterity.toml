@@ -10,12 +10,9 @@ include = [
 ]
 # exclude = []
 
-[processor.links]
-target = "https://github.com/Kostassoid/posterity"
+[decorators]
+external_links = { root = "https://github.com/Kostassoid/posterity/" }
 
 [output]
 root = "."
-
-[output.markdown]
-path = "IMPLEMENTATION.md"
-toc = true
+markdown = { path = "IMPLEMENTATION.md", toc = true }

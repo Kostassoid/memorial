@@ -7,7 +7,7 @@ use derive_getters::Getters;
 pub struct Config {
     title: String,
     scanner: Scanner,
-    processor: Processor,
+    decorators: Decorators,
     output: Output,
 }
 
@@ -26,13 +26,14 @@ pub struct LocalScanner {
 }
 
 #[derive(Deserialize, Debug, Getters)]
-pub struct Processor {
-    links: Option<LinksProcessor>,
+pub struct Decorators {
+    external_links: Option<LinksDecorator>,
 }
 
 #[derive(Deserialize, Debug, Getters)]
-pub struct LinksProcessor {
-    target: String,
+pub struct LinksDecorator {
+    root: String,
+    format: Option<String>,
 }
 
 #[derive(Deserialize, Debug, Getters)]

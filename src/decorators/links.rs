@@ -1,47 +1,55 @@
+use std::collections::HashMap;
 use std::fmt::Debug;
+use std::path::PathBuf;
+use std::string::ToString;
 use url::Url;
 use anyhow::Result;
+use strfmt::{DisplayStr, Format};
 use crate::decorators::Decorator;
 use crate::model::file_location::{FileLocation, FilePath};
 use crate::model::knowledge::KnowledgeTree;
 
 pub struct LinksDecorator {
-    root: Url,
-    line_suffix: String,
+    f: Box<dyn Fn(&PathBuf, usize) -> Result<Url>>
 }
 
+const DEFAULT_FORMAT: &str = "{root}/{path}";
+
 impl LinksDecorator {
-    pub fn new(root: &Url) -> LinksDecorator {
-        let line_suffix = match root.domain() {
-            Some("github.com") => "#L{}",
-            Some("gitlab.com") => "#L{}",
-            _ => ""
-        }.to_string();
+    pub fn new(root: String, format: Option<String>) -> Result<LinksDecorator> {
+        let format = format
+            .or_else(|| { Self::resolve_format(&root) })
+            .unwrap_or(DEFAULT_FORMAT.to_string());
 
-        let root = if root.path().ends_with("/") {
-            root.clone()
-        } else {
-            root.join("/").unwrap()
-        };
+        let normalized_root = root.trim_end_matches('/').to_string();
 
-        LinksDecorator {
-            root,
-            line_suffix,
+        Ok(LinksDecorator {
+            f: Box::new(move |p, l| {
+                let line_str = l.to_string();
+                let vars: HashMap<String, &str> = HashMap::from([
+                    ("root".to_string(), normalized_root.as_str()),
+                    ("path".to_string(), p.to_str().unwrap()),
+                    ("line".to_string(), &line_str),
+                ]);
+
+                Ok(Url::parse(&format.format(&vars)?)?)
+            })
+        })
+    }
+
+    fn resolve_format(root: &str) -> Option<String> {
+        if root.contains("github.com") {
+            return Some("{root}/blob/master/{path}#L{line}".to_string())
         }
+
+        None
     }
 
     fn wrap(&self, l: &mut FileLocation) -> Result<()> {
-        println!("Processing link {:?}", &l);
-
         match l.path() {
             FilePath::Relative(p) => {
-                l.replace_path(
-                    FilePath::AbsoluteUrl(
-                        self.root
-                            .join(p.to_str().unwrap())?
-                            .join(&std::fmt::format(format_args!(self.line_suffix, l.line())))?
-                    )
-                );
+                let url = (self.f)(p, l.line())?;
+                l.replace_path(FilePath::AbsoluteUrl(url));
             },
             _ => {}
         }
