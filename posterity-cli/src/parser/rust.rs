@@ -2,44 +2,12 @@ use pest::Parser as P;
 use pest_derive::Parser;
 use anyhow::Result;
 use pest::iterators::Pair;
+use posterity_macros::FileParser;
 use crate::parser::{Quote, FileParser};
 
-#[derive(Parser)]
+#[derive(Parser, FileParser)]
 #[grammar = "src/parser/rust.pest"]
 pub struct RustParser;
-
-impl RustParser {
-    //todo: extract or make part of the pest rules
-    fn rule_to_quote(pair: Pair<Rule>) -> Quote {
-        let line = pair.line_col().0;
-        let indent = pair.line_col().1 - 1;
-
-        let body = pair.into_inner().as_str()
-            .replace(&format!("\n{}", " ".repeat(indent)), "\n")
-            .replace(&format!("\n{}", "\t".repeat(indent)), "\n")
-            .trim()
-            .to_string();
-
-        Quote {
-            line,
-            body,
-        }
-    }
-}
-
-impl FileParser for RustParser {
-    fn parse_from_str(&self, source: &str) -> Result<Vec<Quote>> {
-        let parsed = RustParser::parse(Rule::root, source)?;
-        Ok(parsed
-            .filter_map(|p| {
-                match p.as_rule() {
-                    Rule::COMMENT => Some(RustParser::rule_to_quote(p)),
-                    _ => None
-                }
-            })
-            .collect())
-    }
-}
 
 #[cfg(test)]
 mod tests {

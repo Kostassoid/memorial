@@ -6,7 +6,7 @@ title = "Posterity Implementation Notes"
 [scanner.local]
 # root = "."
 include = [
-    "src/**/*.rs",
+    "**/src/**/*.rs",
 ]
 # exclude = []
 
