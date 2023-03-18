@@ -13,7 +13,6 @@ use crate::model::file_location::FileLocation;
 use crate::model::knowledge::KnowledgeTree;
 use crate::model::note::{Note, NoteSpan};
 use crate::parser::{FileParser, Quote};
-use crate::parser::go::Rule;
 use crate::scanner::{File, FileScanner};
 
 pub struct Collector {

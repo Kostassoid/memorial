@@ -1,5 +1,6 @@
 pub mod go;
 pub mod rust;
+mod file_parser_derive;
 
 use anyhow::Result;
 

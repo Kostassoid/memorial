@@ -1,10 +1,8 @@
 use std::collections::HashMap;
-use std::fmt::Debug;
-use std::path::PathBuf;
 use std::string::ToString;
 use url::Url;
 use anyhow::Result;
-use strfmt::{DisplayStr, Format};
+use strfmt::Format;
 use crate::decorators::Decorator;
 use crate::model::file_location::{FileLocation, FilePath};
 use crate::model::knowledge::KnowledgeTree;
@@ -29,7 +27,7 @@ impl LinksDecorator {
     }
 
     fn resolve_format(root: &str) -> Option<String> {
-        if root.contains("github.com") || root.contains("gitlab.com") {
+        if root.contains("github") || root.contains("gitlab") {
             return Some("{root}/blob/master/{path}#L{line}".to_string())
         }
 
@@ -61,7 +59,7 @@ impl Decorator for LinksDecorator {
     fn decorate(&self, tree: &mut KnowledgeTree) -> Result<()> {
         tree.visit_mut(&|node: &mut KnowledgeTree| {
             for n in node.notes_mut() {
-                let mut l = n.location_mut();
+                let l = n.location_mut();
                 self.wrap(l)?;
             };
 

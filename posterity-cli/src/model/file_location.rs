@@ -52,19 +52,6 @@ impl FileLocation {
         matches!(&self.path, FilePath::Relative(_))
     }
 
-    pub fn to_absolute_url(&self, prefix: &Url) -> Result<FileLocation> {
-        match &self.path {
-            FilePath::Relative(pb) => Ok(FileLocation {
-                title: self.title.clone(),
-                path: FilePath::AbsoluteUrl(
-                    prefix.join(pb.to_str().ok_or(anyhow!("Can't convert path to string"))?)?
-                ),
-                line: self.line,
-            }),
-            _ => Err(anyhow!("Can't convert non-relative path to absolute Url"))
-        }
-    }
-
     pub fn replace_path(&mut self, path: FilePath) {
         self.path = path;
     }

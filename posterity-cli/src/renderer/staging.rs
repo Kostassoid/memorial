@@ -4,20 +4,20 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use anyhow::Result;
 
-pub struct StagingFS {
-    staged: HashMap<PathBuf, StagingFile>
+pub struct StagingArea {
+    staged: HashMap<PathBuf, StagedFile>
 }
 
-impl StagingFS {
-    pub fn new() -> StagingFS {
-        StagingFS {
+impl StagingArea {
+    pub fn new() -> StagingArea {
+        StagingArea {
             staged: Default::default(),
         }
     }
 
-    pub fn open_as_new<P: AsRef<Path>>(&mut self, path: P) -> &mut StagingFile {
+    pub fn open_as_new<P: AsRef<Path>>(&mut self, path: P) -> &mut StagedFile {
         let p: PathBuf = path.as_ref().to_path_buf();
-        self.staged.insert(p.clone(), StagingFile::new());
+        self.staged.insert(p.clone(), StagedFile::new());
         self.staged.get_mut(&p).unwrap()
     }
 
@@ -44,19 +44,19 @@ impl StagingFS {
     }
 }
 
-pub struct StagingFile {
+pub struct StagedFile {
     contents: Vec<u8>,
 }
 
-impl StagingFile {
-    pub fn new() -> StagingFile {
-        StagingFile {
+impl StagedFile {
+    pub fn new() -> StagedFile {
+        StagedFile {
             contents: Default::default(),
         }
     }
 }
 
-impl Write for StagingFile {
+impl Write for StagedFile {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         self.contents.write(buf)
     }
@@ -67,7 +67,7 @@ impl Write for StagingFile {
     }
 }
 
-impl std::fmt::Write for StagingFile {
+impl std::fmt::Write for StagedFile {
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
         match self.write(s.as_bytes()) {
             Err(_) => Err(std::fmt::Error),

@@ -1,6 +1,4 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
-use std::error::Error;
-use std::string::ToString;
 use anyhow::Result;
 use crate::model::file_location::FileLocation;
 use crate::model::note::NoteSpan;
@@ -31,6 +29,10 @@ impl KnowledgeTree {
 
     pub fn empty() -> KnowledgeTree {
         Self::at(Handle::ROOT)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.notes.is_empty() && self.children.is_empty()
     }
 
     pub fn handle(&self) -> &Handle {
@@ -131,6 +133,7 @@ impl KnowledgeTree {
         node.mentions.insert(from.clone());
     }
 
+    #[allow(dead_code)]
     pub fn visit<F>(&self, f: &F) -> Result<()>
         where F: Fn(&KnowledgeTree) -> Result<()> {
         f(self)?;
@@ -163,7 +166,8 @@ mod test {
     fn knowledge_tree_empty() {
         let kt = KnowledgeTree::empty();
 
-        assert_eq!(kt.children.len(), 0)
+        assert_eq!(kt.children.len(), 0);
+        assert!(kt.is_empty())
     }
 
     #[test]

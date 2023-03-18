@@ -6,14 +6,14 @@ use crate::model::handle::Handle;
 use crate::model::knowledge::KnowledgeTree;
 use crate::model::note::{Note, NoteSpan};
 use crate::renderer::Renderer;
-use crate::renderer::staging_fs::{StagingFile, StagingFS};
+use crate::renderer::staging::{StagedFile, StagingArea};
 
 pub struct MarkdownRenderer {
 }
 
 struct RendererSession<'a> {
     root: &'a KnowledgeTree,
-    out: &'a mut StagingFile,
+    out: &'a mut StagedFile,
 }
 
 impl MarkdownRenderer {
@@ -121,7 +121,7 @@ impl <'a> RendererSession<'a> {
 }
 
 impl Renderer for MarkdownRenderer {
-    fn render(&self, root: &KnowledgeTree, out: &mut StagingFile) -> Result<()> {
+    fn render(&self, root: &KnowledgeTree, out: &mut StagedFile) -> Result<()> {
         RendererSession {
             root,
             out,
@@ -169,7 +169,7 @@ mod test {
 
         let renderer = MarkdownRenderer::new();
 
-        let mut fs = StagingFS::new();
+        let mut fs = StagingArea::new();
 
         renderer.render(&knowledge, fs.open_as_new("test")).unwrap();
         fs.flush_to_stdout().unwrap();

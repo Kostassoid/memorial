@@ -14,7 +14,7 @@ use crate::scanner::local::LocalFileScanner;
 use crate::parser::go::GoParser;
 use crate::parser::rust::RustParser;
 use crate::renderer::Renderer;
-use crate::renderer::staging_fs::StagingFS;
+use crate::renderer::staging::StagingArea;
 use crate::scanner::FileScanner;
 
 pub struct App {
@@ -58,19 +58,26 @@ impl App {
 
         let decorators = self.build_decorators()?;
 
-        let mut fs = StagingFS::new();
+        let mut fs = StagingArea::new();
 
         let renderer = MarkdownRenderer::new();
 
         collector.scan(&scanner, &mut self)?;
 
+        if collector.knowledge_mut().is_empty() {
+            println!("No notes found. Stopping here.");
+            return Ok(())
+        }
+
         decorators.iter().for_each(|d| d.decorate(collector.knowledge_mut()).unwrap());
 
-        println!("Writing to {}", self.config.output().markdown().path());
+        println!("\nRendering into {}", self.config.output().markdown().path());
 
         let mut out = fs.open_as_new(self.config.output().markdown().path());
 
         renderer.render(collector.knowledge_mut(), &mut out)?;
+
+        println!("\nFlushing the files...");
 
         fs.flush_to_os_fs(env::current_dir()?)?;
 
@@ -113,10 +120,6 @@ impl App {
         );
 
         if let Some(l) = self.config.decorators().external_links() {
-            // let url = Url::parse(
-            //     &format!("{}/", l.root().trim_end_matches('/'))
-            // )?;
-
             decorators.push(Box::new(links::LinksDecorator::new(
                 l.root().to_string(),
                 l.format().clone(),
@@ -133,8 +136,8 @@ impl EventHandler for App {
             Event::ScanStarted => println!("Started scanning..."),
             Event::ParsingStarted(p) => println!("Parsing {}", p.to_str().unwrap()),
             Event::ParsingFinished(notes) if notes > 0 => println!("- Found {} notes", notes),
+            Event::ParsingFinished(_) => { },
             Event::ParsingWarning(msg) => println!("- Warning: {}", msg),
-            _ => {}
         }
         Ok(())
     }
