@@ -6,6 +6,7 @@ pub enum Event {
     ScanStarted,
     ParsingStarted(PathBuf),
     ParsingWarning(String),
+    ParsingFinished(usize) // a number of found notes
 }
 
 pub trait EventHandler {

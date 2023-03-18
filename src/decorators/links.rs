@@ -22,8 +22,6 @@ impl LinksDecorator {
             .or_else(|| { Self::resolve_format(&root) })
             .unwrap_or(DEFAULT_FORMAT.to_string());
 
-        let normalized_root = root.trim_end_matches('/').to_string();
-
         Ok(LinksDecorator {
             root: root.trim_end_matches('/').to_string(),
             format,

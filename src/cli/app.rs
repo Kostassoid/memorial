@@ -132,7 +132,9 @@ impl EventHandler for App {
         match event {
             Event::ScanStarted => println!("Started scanning..."),
             Event::ParsingStarted(p) => println!("Parsing {}", p.to_str().unwrap()),
+            Event::ParsingFinished(notes) if notes > 0 => println!("- Found {} notes", notes),
             Event::ParsingWarning(msg) => println!("- Warning: {}", msg),
+            _ => {}
         }
         Ok(())
     }

@@ -3,15 +3,17 @@ use std::path::PathBuf;
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use anyhow::{Result, anyhow};
+use pest::error::LineColLocation;
 use crate::api::events::{Event, EventHandler};
 use crate::collector::file_matcher::FileTypeMatcher;
 use crate::collector::quote_parser::QuoteParser;
-use crate::collector::QuoteSpan;
+use crate::collector::{quote_parser, QuoteSpan};
 use crate::model::attributes;
 use crate::model::file_location::FileLocation;
 use crate::model::knowledge::KnowledgeTree;
 use crate::model::note::{Note, NoteSpan};
 use crate::parser::{FileParser, Quote};
+use crate::parser::go::Rule;
 use crate::scanner::{File, FileScanner};
 
 pub struct Collector {
@@ -58,9 +60,24 @@ impl Collector {
 
             let quotes = parser.parse_from_str(&f.contents()?)?;
 
-            let _errors:Vec<anyhow::Error> = quotes.into_iter()
+            let quotes_len = quotes.len();
+
+            let errors: Vec<anyhow::Error> = quotes.into_iter()
                 .filter_map(|q| { self.process_quote(q, path.clone()).err() })
                 .collect();
+
+            event_handler.send(Event::ParsingFinished(quotes_len - errors.len()))?;
+
+            //@[Core/Collector] Ignoring parsing errors on collected quotes on (1,1) position to reduce false warnings.
+            errors.iter()
+                .filter(|e| {
+                    match e.downcast_ref::<pest::error::Error<quote_parser::Rule>>() {
+                        Some(ee) if ee.line_col == LineColLocation::Pos((1, 1)) => false,
+                        _ => true
+                    }
+                })
+                .map(|e| event_handler.send(Event::ParsingWarning(e.to_string())))
+                .collect::<Vec<Result<()>>>();
         }
 
         Ok(())
