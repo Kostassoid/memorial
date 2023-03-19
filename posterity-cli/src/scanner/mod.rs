@@ -6,7 +6,7 @@ pub mod local;
 mod path_filter;
 
 pub trait File {
-    fn path(&self) -> PathBuf;
+    fn path(&self) -> &PathBuf;
     fn contents(&self) -> Result<String>;
 }
 

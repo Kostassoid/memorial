@@ -15,7 +15,7 @@ impl QuoteParser {
             .map(|p| {
                 match p.as_rule() {
                     Rule::handle =>
-                        Ok(QuoteSpan::Link(Handle::build_from_str(p.into_inner().as_str())?)),
+                        Ok(QuoteSpan::Link(Handle::from_str(p.into_inner().as_str())?)),
                     Rule::attr => {
                         let mut inner = p.into_inner();
                         Ok(QuoteSpan::Attribute(
@@ -47,7 +47,7 @@ mod tests {
        "#).unwrap();
 
         let expected = vec!(
-            QuoteSpan::Link(Handle::build_from_parts(vec!(
+            QuoteSpan::Link(Handle::from_parts(vec!(
                 "Domain".to_string(),
                 "Accumulator".to_string(),
                 "Invariants".to_string(),
@@ -55,7 +55,7 @@ mod tests {
             QuoteSpan::Attribute(attributes::TITLE.to_string(), "Domain rules".to_string()),
             QuoteSpan::Attribute("toggle".to_string(), "".to_string()),
             QuoteSpan::Text("The accumulated value is always increasing when collecting new values.\n            See".to_string()),
-            QuoteSpan::Link(Handle::build_from_parts(vec!(
+            QuoteSpan::Link(Handle::from_parts(vec!(
                 "Domain".to_string(),
                 "Other".to_string(),
                 "Rule".to_string(),

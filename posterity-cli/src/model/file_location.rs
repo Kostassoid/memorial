@@ -1,6 +1,5 @@
 use std::fmt::{Display, Formatter};
 use std::path::PathBuf;
-use anyhow::{anyhow, Result};
 use url::Url;
 
 #[derive(PartialEq, Eq, Debug, Clone)]

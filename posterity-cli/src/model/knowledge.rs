@@ -174,8 +174,8 @@ mod test {
     fn adding_non_empty_notes() {
         let mut kt = KnowledgeTree::empty();
 
-        let handle1 = Handle::build_from_str("a/b/c").unwrap();
-        let handle2 = Handle::build_from_str("a/b/d").unwrap();
+        let handle1 = Handle::from_str("a/b/c").unwrap();
+        let handle2 = Handle::from_str("a/b/d").unwrap();
 
         let note1a = Note::new(
             FileLocation::new_relative("file1.go", 333),
@@ -207,7 +207,7 @@ mod test {
     fn adding_empty_notes() {
         let mut kt = KnowledgeTree::empty();
 
-        let handle = Handle::build_from_str("a/b/c").unwrap();
+        let handle = Handle::from_str("a/b/c").unwrap();
 
         let note1 = Note::new(
             FileLocation::new_relative("file1.go", 333),
@@ -235,7 +235,7 @@ mod test {
     fn merging_attributes() {
         let mut kt = KnowledgeTree::empty();
 
-        let handle = Handle::build_from_str("a/b/c").unwrap();
+        let handle = Handle::from_str("a/b/c").unwrap();
 
         let attributes1 = HashMap::from([
             ("k1".to_string(), "v1".to_string()),

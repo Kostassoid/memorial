@@ -23,7 +23,7 @@ pub struct Collector {
 
 impl Collector {
     pub fn new(skip_unknown_files: bool) -> Collector {
-        Collector{
+        Collector {
             skip_unknown_files,
             knowledge: KnowledgeTree::empty(),
             parsers: Default::default(),
@@ -53,7 +53,7 @@ impl Collector {
                 _ if self.skip_unknown_files => {
                     event_handler.send(Event::ParsingWarning("Unknown file type".to_string()))?;
                     continue;
-                },
+                }
                 _ => return Err(anyhow!("Unknown file type {}", &path.display()))
             };
 
@@ -95,7 +95,7 @@ impl Collector {
 
         for p in parts {
             match p {
-                QuoteSpan::Attribute(k, v) => { attributes.insert(k, v); },
+                QuoteSpan::Attribute(k, v) => { attributes.insert(k, v); }
                 QuoteSpan::Link(h) => note_spans.push(NoteSpan::Link(h)),
                 QuoteSpan::Text(s) => note_spans.push(NoteSpan::Text(s)),
             }
@@ -125,36 +125,133 @@ impl Collector {
         // todo: find an efficient way
         self.parsers
             .iter()
-            .find(|(k, _)| { k.is_match(path)})
+            .find(|(k, _)| { k.is_match(path) })
             .map(|(_, v)| v)
     }
 }
 
 #[cfg(test)]
 mod test {
-    use std::env;
-    use crate::api::events::StubEventHandler;
     use super::*;
-    use crate::scanner::local::LocalFileScanner;
+    use crate::api::events::StubEventHandler;
+    use crate::model::handle::Handle;
     use crate::parser::go::GoParser;
 
-    // todo: don't have to use real files
     #[test]
-    fn collect_from_local_files() {
+    fn can_skip_unknown_files() {
+        let scanner = StubScanner {
+            files: vec!(
+                StubFile {
+                    path: "path/to/file.xxx".into(),
+                    contents: "irrelevant".to_string(),
+                }
+            )
+        };
+
+        let mut event_handler = StubEventHandler::new();
         let mut collector = Collector::new(false);
-        collector.register_parser(FileTypeMatcher::Extension("go".to_string()), Box::new(GoParser{}));
 
-        let scanner = LocalFileScanner::new(
-            env::current_dir().unwrap(),
-            vec!("src/tests/**/*.go".into()),
-            vec!("**/*bad*".into()),
-        ).unwrap();
+        let result = collector.scan(&scanner, &mut event_handler);
+        assert!(matches!(result, Err(_)));
 
-        let mut event_handler = StubEventHandler{ events: vec![] };
+        assert_eq!(vec!(
+            Event::ScanStarted,
+            Event::ParsingStarted("path/to/file.xxx".into()),
+        ), event_handler.events);
+
+        let mut event_handler = StubEventHandler::new();
+        let mut collector = Collector::new(true);
+
+        let result = collector.scan(&scanner, &mut event_handler);
+        assert!(matches!(result, Ok(_)));
+
+        assert_eq!(vec!(
+            Event::ScanStarted,
+            Event::ParsingStarted("path/to/file.xxx".into()),
+            Event::ParsingWarning("Unknown file type".into()),
+        ), event_handler.events);
+    }
+
+    #[test]
+    fn parses_and_extracts_quotes_from_files() {
+        let scanner = StubScanner {
+            files: vec!(
+                StubFile {
+                    path: "path/to/file1.go".into(),
+                    contents: "//@[a/b/c] note 1".to_string(),
+                },
+                StubFile {
+                    path: "path/to/file2.go".into(),
+                    contents: "//@[a/b/c]{toggle} note 2, see @[x/y/z] for more".to_string(),
+                },
+            )
+        };
+
+        let mut event_handler = StubEventHandler::new();
+        let mut collector = Collector::new(false);
+
+        collector.register_parser(FileTypeMatcher::Extension("go".to_string()), Box::new(GoParser {}));
 
         collector.scan(&scanner, &mut event_handler).unwrap();
 
-        let knowledge = collector.knowledge_mut();
-        println!("k = {knowledge:#?}");
+        assert_eq!(vec!(
+            Event::ScanStarted,
+            Event::ParsingStarted("path/to/file1.go".into()),
+            Event::ParsingFinished(1),
+            Event::ParsingStarted("path/to/file2.go".into()),
+            Event::ParsingFinished(1),
+        ), event_handler.events);
+
+        let node = collector.knowledge
+            .find_node(&Handle::from_str("a/b/c").unwrap())
+            .unwrap();
+
+        assert_eq!(vec!(
+            Note::new(
+                FileLocation::new_relative("path/to/file1.go", 1),
+                vec!(NoteSpan::Text("note 1".to_string())),
+            ),
+            Note::new(
+                FileLocation::new_relative("path/to/file2.go", 1),
+                vec!(
+                    NoteSpan::Text("note 2, see".to_string()),
+                    NoteSpan::Link(Handle::from_str("x/y/z").unwrap()),
+                    NoteSpan::Text("for more".to_string()),
+                ),
+            ),
+        ), *node.notes());
+
+        assert_eq!(HashMap::from([("toggle".to_string(), "".to_string())]), *node.attributes())
+    }
+
+    #[derive(Clone)]
+    struct StubFile {
+        path: PathBuf,
+        contents: String,
+    }
+
+    impl File for StubFile {
+        fn path(&self) -> &PathBuf {
+            &self.path
+        }
+
+        fn contents(&self) -> Result<String> {
+            Ok(self.contents.clone())
+        }
+    }
+
+    struct StubScanner {
+        files: Vec<StubFile>,
+    }
+
+    impl FileScanner for StubScanner {
+        type F = StubFile;
+
+        fn scan(&self, target: Sender<Self::F>) -> Result<()> {
+            for f in &self.files {
+                target.send(f.clone())?;
+            }
+            Ok(())
+        }
     }
 }

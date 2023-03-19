@@ -73,8 +73,8 @@ impl LocalFile {
 }
 
 impl File for LocalFile {
-    fn path(&self) -> PathBuf {
-        self.local_path.clone()
+    fn path(&self) -> &PathBuf {
+        &self.local_path
     }
 
     fn contents(&self) -> Result<String> {

@@ -2,6 +2,7 @@ title = "Posterity Implementation Notes"
 
 [scanner]
 # skip-unknown-files = true
+# skip-parsing-errors = true
 
 [scanner.local]
 # root = "."

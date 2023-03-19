@@ -1,12 +1,12 @@
 use std::path::PathBuf;
 use anyhow::Result;
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum Event {
     ScanStarted,
     ParsingStarted(PathBuf),
     ParsingWarning(String),
-    ParsingFinished(usize) // a number of found notes
+    ParsingFinished(usize), // a number of found notes
 }
 
 pub trait EventHandler {
@@ -14,7 +14,13 @@ pub trait EventHandler {
 }
 
 pub struct StubEventHandler {
-    pub events: Vec<Event>
+    pub events: Vec<Event>,
+}
+
+impl StubEventHandler {
+    pub fn new() -> StubEventHandler {
+        StubEventHandler { events: vec![] }
+    }
 }
 
 impl EventHandler for StubEventHandler {
