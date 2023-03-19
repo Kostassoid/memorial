@@ -25,7 +25,7 @@ impl Collector {
     pub fn new(skip_unknown_files: bool) -> Collector {
         Collector {
             skip_unknown_files,
-            knowledge: KnowledgeTree::empty(),
+            knowledge: KnowledgeTree::root(),
             parsers: Default::default(),
         }
     }
@@ -75,8 +75,7 @@ impl Collector {
                         _ => true
                     }
                 })
-                .map(|e| event_handler.send(Event::ParsingWarning(e.to_string())))
-                .collect::<Vec<Result<()>>>();
+                .for_each(|e| event_handler.send(Event::ParsingWarning(e.to_string())).unwrap());
         }
 
         Ok(())

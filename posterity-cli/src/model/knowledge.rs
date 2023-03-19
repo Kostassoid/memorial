@@ -27,7 +27,7 @@ impl KnowledgeTree {
         }
     }
 
-    pub fn empty() -> KnowledgeTree {
+    pub fn root() -> KnowledgeTree {
         Self::at(Handle::ROOT)
     }
 
@@ -159,12 +159,13 @@ impl KnowledgeTree {
 
 #[cfg(test)]
 mod test {
+    use std::cell::RefCell;
     use crate::model::note::NoteSpan;
     use super::*;
 
     #[test]
     fn knowledge_tree_empty() {
-        let kt = KnowledgeTree::empty();
+        let kt = KnowledgeTree::root();
 
         assert_eq!(kt.children.len(), 0);
         assert!(kt.is_empty())
@@ -172,7 +173,7 @@ mod test {
 
     #[test]
     fn adding_non_empty_notes() {
-        let mut kt = KnowledgeTree::empty();
+        let mut kt = KnowledgeTree::root();
 
         let handle1 = Handle::from_str("a/b/c").unwrap();
         let handle2 = Handle::from_str("a/b/d").unwrap();
@@ -205,7 +206,7 @@ mod test {
 
     #[test]
     fn adding_empty_notes() {
-        let mut kt = KnowledgeTree::empty();
+        let mut kt = KnowledgeTree::root();
 
         let handle = Handle::from_str("a/b/c").unwrap();
 
@@ -233,7 +234,7 @@ mod test {
 
     #[test]
     fn merging_attributes() {
-        let mut kt = KnowledgeTree::empty();
+        let mut kt = KnowledgeTree::root();
 
         let handle = Handle::from_str("a/b/c").unwrap();
 
@@ -260,5 +261,27 @@ mod test {
             ]),
             node.attributes,
         )
+    }
+
+    #[test]
+    fn walking_a_tree() {
+        let mut kt = KnowledgeTree::root();
+
+        kt.find_node_mut(&Handle::from_str("a/b/c").unwrap());
+        kt.find_node_mut(&Handle::from_str("x/y/z").unwrap());
+        kt.find_node_mut(&Handle::from_str("a/b/d").unwrap());
+
+        let visited: RefCell<Vec<String>> = RefCell::new(vec![]);
+        kt.visit_mut(&|n| {
+            visited.borrow_mut().push(n.handle.to_string());
+            Ok(())
+        }).unwrap();
+
+        assert_eq!(vec!(
+            "",
+            "a", "a / b", "a / b / c",
+            "a / b / d",
+            "x", "x / y", "x / y / z"
+        ), visited.into_inner());
     }
 }

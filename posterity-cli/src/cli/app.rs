@@ -1,9 +1,7 @@
 use std::env;
-use std::io::stdout;
 use std::path::PathBuf;
 use anyhow::{Context, Result};
 use clap::{Arg, ArgAction, Command};
-use url::Url;
 use crate::api::events::{Event, EventHandler};
 use crate::cli::config::{Config, MarkdownOutput, Scanner};
 use crate::collector::collector::Collector;
@@ -73,9 +71,7 @@ impl App {
 
         println!("\nRendering into {}", self.config.output().markdown().path());
 
-        let mut out = fs.open_as_new(self.config.output().markdown().path());
-
-        renderer.render(collector.knowledge_mut(), &mut out)?;
+        renderer.render(collector.knowledge_mut(), &mut fs,self.config.output().markdown().path())?;
 
         println!("\nFlushing the files...");
 
@@ -115,7 +111,7 @@ impl App {
     fn build_decorators(&self) -> Result<Vec<Box<dyn Decorator>>> {
         let mut decorators: Vec<Box<dyn Decorator>> = vec!(
             Box::new(meta::MetaDecorator {
-                title: self.config.title().clone()
+                title: self.config.title().clone(),
             })
         );
 

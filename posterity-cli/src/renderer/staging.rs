@@ -42,6 +42,10 @@ impl StagingArea {
 
         Ok(())
     }
+
+    pub fn open<P: AsRef<Path>>(&self, path: P) -> Option<&StagedFile> {
+        self.staged.get(&path.as_ref().to_path_buf())
+    }
 }
 
 pub struct StagedFile {
@@ -53,6 +57,10 @@ impl StagedFile {
         StagedFile {
             contents: Default::default(),
         }
+    }
+
+    pub fn contents(&self) -> &Vec<u8> {
+        &self.contents
     }
 }
 
