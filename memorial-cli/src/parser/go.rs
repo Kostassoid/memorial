@@ -2,7 +2,7 @@ use pest::Parser as P;
 use pest_derive::Parser;
 use anyhow::Result;
 use pest::iterators::Pair;
-use posterity_macros::FileParser;
+use memorial_macros::FileParser;
 use crate::parser::{Quote, FileParser};
 
 #[derive(Parser, FileParser)]

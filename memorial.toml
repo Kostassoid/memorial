@@ -1,4 +1,4 @@
-title = "Posterity Implementation Notes"
+title = "Memorial Implementation Notes"
 
 [scanner]
 # skip-unknown-files = true
@@ -12,7 +12,7 @@ include = [
 # exclude = []
 
 [decorators]
-external_links = { root = "https://github.com/Kostassoid/posterity/" }
+external_links = { root = "https://github.com/Kostassoid/memorial/" }
 
 [output]
 root = "."

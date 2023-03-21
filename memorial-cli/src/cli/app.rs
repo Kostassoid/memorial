@@ -28,12 +28,12 @@ impl App {
         the only argument for the CLI application for now is just a path to the configuration file.
         Which is also optional.
         */
-        let args = Command::new("Posterity")
+        let args = Command::new("Memorial")
             .arg(
                 Arg::new("config")
                     .help("A path to config file")
                     .short('c')
-                    .default_value("posterity.toml")
+                    .default_value("memorial.toml")
                     .action(ArgAction::Set),
             )
             .get_matches();

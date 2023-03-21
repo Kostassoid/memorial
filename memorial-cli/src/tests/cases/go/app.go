@@ -5,7 +5,7 @@ func main() {
     Uses hard-coded values for demonstrating @[Domain/Accumulator/Invariants] in action.
 
     _Primary uses:_
-    - Demo Posterity features
+    - Demo Memorial features
     - Testing
       - Including **Markdown** rendering
     */

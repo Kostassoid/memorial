@@ -1,5 +1,5 @@
 [workspace]
 members = [
-  "posterity-macros",
-  "posterity-cli",
+  "memorial-macros",
+  "memorial-cli",
 ]
