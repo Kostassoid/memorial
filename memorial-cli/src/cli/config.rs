@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde_derive::{Deserialize};
 use derive_getters::Getters;
@@ -38,6 +38,7 @@ pub struct LinksDecorator {
 
 #[derive(Deserialize, Debug, Getters)]
 pub struct Output {
+    root: Option<String>,
     markdown: MarkdownOutput,
 }
 

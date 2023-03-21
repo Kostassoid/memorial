@@ -25,10 +25,10 @@ impl MarkdownRenderer {
 }
 
 impl Renderer for MarkdownRenderer {
-    fn render<P: AsRef<Path>>(&self, root: &KnowledgeTree, fs: &mut StagingArea, out: P) -> Result<()> {
+    fn render(&self, root: &KnowledgeTree, fs: &mut StagingArea) -> Result<()> {
         RendererSession {
             root,
-            out: fs.open_as_new(out),
+            out: fs.open_as_new(root.attributes().get(attributes::OUTPUT_FILE_NAME).unwrap()),
         }.render()
     }
 }
@@ -56,6 +56,8 @@ impl <'a> RendererSession<'a> {
     }
 
     fn render_node(&mut self, level: usize, node: &KnowledgeTree) -> Result<()> {
+        self.render_toc(level: usize, node: &KnowledgeTree)?;
+
         self.w(&*format!(
             "{} <a id=\"{}\"></a> {}\n\n",
             "#".repeat(level),
@@ -84,6 +86,21 @@ impl <'a> RendererSession<'a> {
         for (_, n) in node.children() {
             self.render_node(level + 1, n)?;
         }
+
+        Ok(())
+    }
+
+    fn render_toc(&mut self, level: usize, node: &KnowledgeTree) -> Result<()> {
+        if node.attributes().get(attributes::TOC).unwrap_or(&"false".to_string()) != "true" {
+            return Ok(())
+        }
+
+        self.w(&*format!(
+            "{} Table of contents\n\n",
+            "#".repeat(level),
+        ))?;
+
+        //todo: this
 
         Ok(())
     }
@@ -147,6 +164,7 @@ mod test {
                 (attributes::TITLE.to_string(), "Big Nice Title".to_string()),
                 (attributes::APP_VERSION.to_string(), "0.1.0".to_string()),
                 (attributes::TIMESTAMP.to_string(), "2023-03-01 12:34:56".to_string()),
+                (attributes::OUTPUT_FILE_NAME.to_string(), "test".to_string()),
             ]),
         );
 
@@ -176,7 +194,7 @@ mod test {
         let mut fs = StagingArea::new();
         let renderer = MarkdownRenderer::new();
 
-        renderer.render(&knowledge, &mut fs, "test").unwrap();
+        renderer.render(&knowledge, &mut fs).unwrap();
 
         let generated = String::from_utf8(fs.open("test").unwrap().contents().clone())
             .unwrap()

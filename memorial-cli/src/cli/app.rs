@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::env;
 use std::path::PathBuf;
 use anyhow::{Context, Result};
@@ -7,6 +8,8 @@ use crate::cli::config::{Config, MarkdownOutput, Scanner};
 use crate::collector::collector::Collector;
 use crate::collector::file_matcher::FileTypeMatcher;
 use crate::decorators::{Decorator, links, root};
+use crate::model::attributes;
+use crate::model::handle::Handle;
 use crate::renderer::markdown::MarkdownRenderer;
 use crate::scanner::local::LocalFileScanner;
 use crate::parser::go::GoParser;
@@ -17,16 +20,17 @@ use crate::scanner::FileScanner;
 
 pub struct App {
     config: Config,
+    verbose_mode: bool,
 }
 
 //@[CLI]{title:CLI application}{do-not-collect}
 impl App {
     pub fn new() -> Result<App> {
         /*@[CLI]
-        The application is primarily designed to be run automatically (e.g. as a pre-commit hook or during CI).
+        The application is primarily designed to be run in non-interactive mode (e.g. as a pre-commit hook or during CI).
         Because of that reason and to emphasize using the code and VCS as much as possible (e.g. vs bash history),
-        the only argument for the CLI application for now is just a path to the configuration file.
-        Which is also optional.
+        all of the parameters are embedded in a configuration file. With the only exception of verbose mode which can be
+        used ad-hoc for figuring out some of the issues with collecting.
         */
         let args = Command::new("Memorial")
             .arg(
@@ -36,6 +40,12 @@ impl App {
                     .default_value("memorial.toml")
                     .action(ArgAction::Set),
             )
+            .arg(
+                Arg::new("verbose")
+                    .help("Verbose mode")
+                    .short('v')
+                    .action(ArgAction::SetTrue),
+            )
             .get_matches();
 
         let config_path = args.get_one::<String>("config").unwrap();
@@ -44,8 +54,11 @@ impl App {
 
         let config = Config::from_file(config_path)?;
 
+        let verbose_mode = args.get_flag("verbose");
+
         Ok(App {
-            config
+            config,
+            verbose_mode,
         })
     }
 
@@ -69,13 +82,36 @@ impl App {
 
         decorators.iter().for_each(|d| d.decorate(collector.knowledge_mut()).unwrap());
 
+        /*@[CLI/Rendering]
+        Even though the overall design and the config model allow for using multiple renderers
+        (even operating over the same collected notes), this feels like a rabbit hole of over-generalization.
+        So the idea is to keep Markdown as the one and only renderer until the rest of the project is
+        mature enough and there's a clear(er) vision of the roadmap.
+        */
+
+        collector.knowledge_mut().merge_attributes(&Handle::ROOT, HashMap::from([
+            (attributes::OUTPUT_FILE_NAME.to_string(), self.config.output().markdown().path().to_string()),
+            (attributes::TOC.to_string(), self.config.output().markdown().toc().to_string())
+        ]));
+
+        if self.verbose_mode {
+            println!("\nCollected notes:\n{:#?}", collector.knowledge_mut());
+        }
+
         println!("\nRendering into {}", self.config.output().markdown().path());
 
-        renderer.render(collector.knowledge_mut(), &mut fs,self.config.output().markdown().path())?;
+        renderer.render(
+            collector.knowledge_mut(),
+            &mut fs,
+        )?;
 
         println!("\nFlushing the files...");
 
-        fs.flush_to_os_fs(env::current_dir()?)?;
+        let output_root = self.config.output().root().as_ref()
+            .map(|r| PathBuf::from(r))
+            .unwrap_or(env::current_dir()?);
+
+        fs.flush_to_os_fs(output_root)?;
 
         println!("Done!");
 

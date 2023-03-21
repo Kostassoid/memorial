@@ -12,3 +12,5 @@ enforced through the parser currently.
 */
 pub const APP_VERSION: &'static str = "!app-version";
 pub const TIMESTAMP: &'static str = "!timestamp";
+pub const OUTPUT_FILE_NAME: &'static str = "!output-file-name";
+pub const TOC: &'static str = "!toc";
