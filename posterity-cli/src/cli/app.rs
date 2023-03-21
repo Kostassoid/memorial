@@ -6,7 +6,7 @@ use crate::api::events::{Event, EventHandler};
 use crate::cli::config::{Config, MarkdownOutput, Scanner};
 use crate::collector::collector::Collector;
 use crate::collector::file_matcher::FileTypeMatcher;
-use crate::decorators::{Decorator, links, meta};
+use crate::decorators::{Decorator, links, root};
 use crate::renderer::markdown::MarkdownRenderer;
 use crate::scanner::local::LocalFileScanner;
 use crate::parser::go::GoParser;
@@ -110,7 +110,7 @@ impl App {
 
     fn build_decorators(&self) -> Result<Vec<Box<dyn Decorator>>> {
         let mut decorators: Vec<Box<dyn Decorator>> = vec!(
-            Box::new(meta::MetaDecorator {
+            Box::new(root::RootDecorator {
                 title: self.config.title().clone(),
             })
         );
@@ -131,9 +131,10 @@ impl EventHandler for App {
         match event {
             Event::ScanStarted => println!("Started scanning..."),
             Event::ParsingStarted(p) => println!("Parsing {}", p.to_str().unwrap()),
-            Event::ParsingFinished(notes) if notes > 0 => println!("- Found {} notes", notes),
-            Event::ParsingFinished(_) => { },
-            Event::ParsingWarning(msg) => println!("- Warning: {}", msg),
+            Event::ParsingFinished(_, notes) if notes > 0 => println!("- Found {} note(s)", notes),
+            Event::ParsingFinished(_, _) => { },
+            Event::ParsingWarning(_, msg) => println!("- Warning: {}", msg),
+            Event::ScanFinished => { },
         }
         Ok(())
     }

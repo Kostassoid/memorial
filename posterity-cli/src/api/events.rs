@@ -5,8 +5,9 @@ use anyhow::Result;
 pub enum Event {
     ScanStarted,
     ParsingStarted(PathBuf),
-    ParsingWarning(String),
-    ParsingFinished(usize), // a number of found notes
+    ParsingWarning(PathBuf, String),
+    ParsingFinished(PathBuf, usize), // a number of found notes
+    ScanFinished,
 }
 
 pub trait EventHandler {

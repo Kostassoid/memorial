@@ -6,11 +6,11 @@ use crate::model::attributes;
 use crate::model::handle::Handle;
 use crate::model::knowledge::KnowledgeTree;
 
-pub struct MetaDecorator {
+pub struct RootDecorator {
     pub title: String,
 }
 
-impl Decorator for MetaDecorator {
+impl Decorator for RootDecorator {
     fn decorate(&self, tree: &mut KnowledgeTree) -> anyhow::Result<()> {
         tree.merge_attributes(
             &Handle::ROOT,

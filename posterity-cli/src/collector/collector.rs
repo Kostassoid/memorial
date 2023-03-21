@@ -51,7 +51,7 @@ impl Collector {
                 .find_parser(&path) {
                 Some(p) => p,
                 _ if self.skip_unknown_files => {
-                    event_handler.send(Event::ParsingWarning("Unknown file type".to_string()))?;
+                    event_handler.send(Event::ParsingWarning(path.clone(), "Unknown file type".to_string()))?;
                     continue;
                 }
                 _ => return Err(anyhow!("Unknown file type {}", &path.display()))
@@ -65,7 +65,7 @@ impl Collector {
                 .filter_map(|q| { self.process_quote(q, path.clone()).err() })
                 .collect();
 
-            event_handler.send(Event::ParsingFinished(quotes_len - errors.len()))?;
+            event_handler.send(Event::ParsingFinished(path.clone(), quotes_len - errors.len()))?;
 
             //@[Core/Collector] Ignoring parsing errors on collected quotes on (1,1) position to reduce false warnings.
             errors.iter()
@@ -75,8 +75,10 @@ impl Collector {
                         _ => true
                     }
                 })
-                .for_each(|e| event_handler.send(Event::ParsingWarning(e.to_string())).unwrap());
+                .for_each(|e| event_handler.send(Event::ParsingWarning(path.clone(), e.to_string())).unwrap());
         }
+
+        event_handler.send(Event::ScanFinished)?;
 
         Ok(())
     }
@@ -164,10 +166,12 @@ mod test {
         let result = collector.scan(&scanner, &mut event_handler);
         assert!(matches!(result, Ok(_)));
 
+        let path: PathBuf = "path/to/file.xxx".into();
         assert_eq!(vec!(
             Event::ScanStarted,
-            Event::ParsingStarted("path/to/file.xxx".into()),
-            Event::ParsingWarning("Unknown file type".into()),
+            Event::ParsingStarted(path.clone()),
+            Event::ParsingWarning(path.clone(), "Unknown file type".into()),
+            Event::ScanFinished,
         ), event_handler.events);
     }
 
@@ -193,12 +197,16 @@ mod test {
 
         collector.scan(&scanner, &mut event_handler).unwrap();
 
+        let path1: PathBuf = "path/to/file1.go".into();
+        let path2: PathBuf = "path/to/file2.go".into();
+
         assert_eq!(vec!(
             Event::ScanStarted,
-            Event::ParsingStarted("path/to/file1.go".into()),
-            Event::ParsingFinished(1),
-            Event::ParsingStarted("path/to/file2.go".into()),
-            Event::ParsingFinished(1),
+            Event::ParsingStarted(path1.clone()),
+            Event::ParsingFinished(path1.clone(), 1),
+            Event::ParsingStarted(path2.clone()),
+            Event::ParsingFinished(path2.clone(), 1),
+            Event::ScanFinished,
         ), event_handler.events);
 
         let node = collector.knowledge
