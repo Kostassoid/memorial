@@ -1,5 +1,4 @@
 use std::fmt::Write;
-use std::path::Path;
 use anyhow::Result;
 use crate::model::attributes;
 use crate::model::file_location::FileLocation;
@@ -26,6 +25,11 @@ impl MarkdownRenderer {
 
 impl Renderer for MarkdownRenderer {
     fn render(&self, root: &KnowledgeTree, fs: &mut StagingArea) -> Result<()> {
+        /*@[Core/Renderer/Markdown]
+        One possible future improvement is allowing to render the collected notes into multiple files.
+        This can be user-controlled by using attributes. Hence that's how output file path is
+        passed to the renderer. But, for now, only a value from the root node is used.
+        */
         RendererSession {
             root,
             out: fs.open_as_new(root.attributes().get(attributes::OUTPUT_FILE_NAME).unwrap()),
@@ -56,14 +60,14 @@ impl <'a> RendererSession<'a> {
     }
 
     fn render_node(&mut self, level: usize, node: &KnowledgeTree) -> Result<()> {
-        self.render_toc(level: usize, node: &KnowledgeTree)?;
-
         self.w(&*format!(
             "{} <a id=\"{}\"></a> {}\n\n",
             "#".repeat(level),
             node.handle().as_url_safe_string(),
             self.resolve_node_title(node.handle()),
         ))?;
+
+        self.render_toc(level + 1, node)?;
 
         for n in node.notes() {
             self.w(&*self.format_note(n))?;
@@ -100,7 +104,21 @@ impl <'a> RendererSession<'a> {
             "#".repeat(level),
         ))?;
 
-        //todo: this
+        self.render_toc_links(0, node)?;
+
+        self.w("\n")?;
+
+        Ok(())
+    }
+
+    fn render_toc_links(&mut self, level: usize, node: &KnowledgeTree) -> Result<()> {
+        if level > 0 {
+            self.w(&*format!("{}- {}\n", "\t".repeat(level - 1), self.format_link(node.handle())))?;
+        }
+
+        for (_, n) in node.children() {
+            self.render_toc_links(level + 1, n)?;
+        }
 
         Ok(())
     }
@@ -165,6 +183,7 @@ mod test {
                 (attributes::APP_VERSION.to_string(), "0.1.0".to_string()),
                 (attributes::TIMESTAMP.to_string(), "2023-03-01 12:34:56".to_string()),
                 (attributes::OUTPUT_FILE_NAME.to_string(), "test".to_string()),
+                (attributes::TOC.to_string(), "true".to_string()),
             ]),
         );
 
@@ -202,6 +221,13 @@ mod test {
 
         let expected = r#"
 # <a id=""></a> Big Nice Title
+
+## Table of contents
+
+- [a](#a)
+	- [b](#a+b)
+		- [Sub title](#a+b+c)
+		- [d](#a+b+d)
 
 ## <a id="a"></a> a
 

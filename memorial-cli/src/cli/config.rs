@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use anyhow::{anyhow, Context, Result};
 use serde_derive::{Deserialize};
 use derive_getters::Getters;
