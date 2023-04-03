@@ -1,9 +1,11 @@
-use crate::scanner::path_filter::PathFilter;
-use crate::scanner::{File, FileScanner};
-use anyhow::{Context, Result};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::Sender;
+
+use anyhow::{Context, Result};
+
+use crate::scanner::path_filter::PathFilter;
+use crate::scanner::{File, FileScanner};
 
 pub struct LocalFile {
     local_path: PathBuf,
@@ -81,10 +83,11 @@ impl File for LocalFile {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use std::env;
     use std::sync::mpsc;
     use std::sync::mpsc::Receiver;
+
+    use super::*;
 
     #[test]
     fn scan_local_directory() {
@@ -104,8 +107,12 @@ mod test {
         assert_eq!(2, valid_files.len());
         assert_eq!(
             vec!(
-                r"src\tests\cases\go\app.go",
-                r"src\tests\cases\go\domain.go",
+                PathBuf::from_iter(["src", "tests", "cases", "go", "app.go"])
+                    .to_str()
+                    .unwrap(),
+                PathBuf::from_iter(["src", "tests", "cases", "go", "domain.go"])
+                    .to_str()
+                    .unwrap(),
             ),
             valid_files
                 .iter()
