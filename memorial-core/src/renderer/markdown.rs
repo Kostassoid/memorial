@@ -1,12 +1,14 @@
+use std::fmt::Write;
+
+use anyhow::Result;
+
 use crate::model::attributes;
 use crate::model::file_location::FileLocation;
 use crate::model::handle::Handle;
 use crate::model::knowledge::KnowledgeTree;
 use crate::model::note::{Note, NoteSpan};
-use crate::renderer::staging::{StagedFile, StagingArea};
 use crate::renderer::Renderer;
-use anyhow::Result;
-use std::fmt::Write;
+use crate::renderer::staging::{StagedFile, StagingArea};
 
 pub struct MarkdownRenderer {}
 
@@ -32,10 +34,16 @@ impl Renderer for MarkdownRenderer {
             root,
             out: fs.open_as_new(root.attributes().get(attributes::OUTPUT_FILE_NAME).unwrap()),
         }
-        .render()
+            .render()
     }
 }
 
+/*@[Core/Renderer/Markdown]
+The renderer is currently implemented using low level string builders. This seemed like a good idea
+during the initial development phase as integrating with template engine libraries would require
+preparing the data in a certain way, which, depending on the engine implementation could limit the
+features exposed from the `Renderer`.
+*/
 impl<'a> RendererSession<'a> {
     fn render(mut self) -> Result<()> {
         self.render_node(1, self.root)?;
@@ -103,7 +111,7 @@ impl<'a> RendererSession<'a> {
             return Ok(());
         }
 
-        self.w(&*format!("{} Table of contents\n\n", "#".repeat(level),))?;
+        self.w(&*format!("{} Table of contents\n\n", "#".repeat(level), ))?;
 
         self.render_toc_links(0, node)?;
 
@@ -180,9 +188,11 @@ impl<'a> RendererSession<'a> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::model::handle::Handle;
     use std::collections::HashMap;
+
+    use crate::model::handle::Handle;
+
+    use super::*;
 
     #[test]
     fn render_from_knowledge_tree() {

@@ -1,22 +1,25 @@
-use crate::cli::config::Config;
+use std::collections::HashMap;
+use std::env;
+use std::path::PathBuf;
+
 use anyhow::{anyhow, Result};
 use clap::{Arg, ArgAction, Command};
+
 use memorial_core::api::events::{Event, EventHandler};
 use memorial_core::collector::collector::Collector;
 use memorial_core::collector::file_matcher::FileTypeMatcher;
-use memorial_core::decorators::{links, root, Decorator};
+use memorial_core::decorators::{Decorator, links, root};
 use memorial_core::model::attributes;
 use memorial_core::model::handle::Handle;
 use memorial_core::parser::go::GoParser;
 use memorial_core::parser::rust::RustParser;
 use memorial_core::renderer::markdown::MarkdownRenderer;
-use memorial_core::renderer::staging::StagingArea;
 use memorial_core::renderer::Renderer;
-use memorial_core::scanner::local::LocalFileScanner;
+use memorial_core::renderer::staging::StagingArea;
 use memorial_core::scanner::FileScanner;
-use std::collections::HashMap;
-use std::env;
-use std::path::PathBuf;
+use memorial_core::scanner::local::LocalFileScanner;
+
+use crate::cli::config::Config;
 
 pub struct App {
     config: Config,
@@ -27,10 +30,9 @@ pub struct App {
 impl App {
     pub fn new() -> Result<App> {
         /*@[CLI]
-        The application is primarily designed to be run in non-interactive mode (e.g. as a pre-commit hook or during CI).
-        Because of that reason and to emphasize using the code and VCS as much as possible (e.g. vs bash history),
-        all of the parameters are embedded in a configuration file. With the only exception of verbose mode which can be
-        used ad-hoc for figuring out some of the issues with collecting.
+        The application is primarily designed to be run in non-interactive mode (e.g. as a pre-commit
+        hook or during CI). Because of that reason and to emphasize using VCS for anything important,
+        most of the parameters are set in a configuration file.
         */
         let args = Command::new("Memorial")
             .arg(
@@ -39,6 +41,10 @@ impl App {
                     .short('c')
                     .default_value("memorial.toml")
                     .action(ArgAction::Set),
+            )
+            .subcommand( //@[CLI] `scan` command is assumed implicitly to simplify the interaction.
+                         Command::new("scan")
+                             .about("Scans source files and generates documentation files from found notes.")
             )
             .arg(
                 Arg::new("verbose")
