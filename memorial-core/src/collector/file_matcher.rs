@@ -8,10 +8,11 @@ pub enum FileTypeMatcher {
 impl FileTypeMatcher {
     pub fn is_match<P: AsRef<Path>>(&self, path: P) -> bool {
         match self {
-            FileTypeMatcher::Extension(ext) =>
-                path.as_ref().extension()
-                    .map(|e| e.eq_ignore_ascii_case(ext))
-                    .unwrap_or(false)
+            FileTypeMatcher::Extension(ext) => path
+                .as_ref()
+                .extension()
+                .map(|e| e.eq_ignore_ascii_case(ext))
+                .unwrap_or(false),
         }
     }
 }

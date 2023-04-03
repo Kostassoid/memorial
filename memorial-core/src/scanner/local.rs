@@ -1,9 +1,9 @@
+use crate::scanner::path_filter::PathFilter;
+use crate::scanner::{File, FileScanner};
+use anyhow::{Context, Result};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::Sender;
-use anyhow::{Result, Context};
-use crate::scanner::{File, FileScanner};
-use crate::scanner::path_filter::PathFilter;
 
 pub struct LocalFile {
     local_path: PathBuf,
@@ -21,10 +21,7 @@ impl LocalFileScanner {
         include: Vec<String>,
         exclude: Vec<String>,
     ) -> Result<LocalFileScanner> {
-        let filter = PathFilter::from_glob(
-            &include,
-            &exclude,
-        )?;
+        let filter = PathFilter::from_glob(&include, &exclude)?;
 
         Ok(LocalFileScanner {
             root: root.as_ref().to_path_buf(),
@@ -45,10 +42,7 @@ impl LocalFileScanner {
                     continue;
                 }
 
-                target.send(LocalFile::new(
-                    local_path,
-                    path.clone(),
-                ))?;
+                target.send(LocalFile::new(local_path, path.clone()))?;
             }
         }
         Ok(())
@@ -78,25 +72,28 @@ impl File for LocalFile {
     }
 
     fn contents(&self) -> Result<String> {
-        fs::read_to_string(&self.absolute_path)
-            .context(format!("Unable to read from {}", self.absolute_path.display()))
+        fs::read_to_string(&self.absolute_path).context(format!(
+            "Unable to read from {}",
+            self.absolute_path.display()
+        ))
     }
 }
 
 #[cfg(test)]
 mod test {
+    use super::*;
     use std::env;
     use std::sync::mpsc;
     use std::sync::mpsc::Receiver;
-    use super::*;
 
     #[test]
     fn scan_local_directory() {
         let scanner = LocalFileScanner::new(
             env::current_dir().unwrap(),
-            vec!("src/tests/**/*.go".into()),
-            vec!("**/*bad*".into()),
-        ).unwrap();
+            vec!["src/tests/**/*.go".into()],
+            vec!["**/*bad*".into()],
+        )
+        .unwrap();
 
         let (tx, rx): (Sender<LocalFile>, Receiver<LocalFile>) = mpsc::channel();
 
@@ -110,7 +107,10 @@ mod test {
                 r"src\tests\cases\go\app.go",
                 r"src\tests\cases\go\domain.go",
             ),
-            valid_files.iter().map(|f| f.local_path.to_str().unwrap()).collect::<Vec<_>>(),
+            valid_files
+                .iter()
+                .map(|f| f.local_path.to_str().unwrap())
+                .collect::<Vec<_>>(),
         );
     }
 }

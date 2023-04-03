@@ -1,2 +1,2 @@
-mod config;
 pub mod app;
+mod config;

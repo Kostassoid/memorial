@@ -1,4 +1,4 @@
-use quote::{quote, format_ident};
+use quote::{format_ident, quote};
 
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput};

@@ -1,9 +1,9 @@
-use std::collections::{BTreeMap, HashMap, HashSet};
-use anyhow::Result;
-use crate::model::file_location::FileLocation;
-use crate::model::note::NoteSpan;
 use super::handle::*;
 use super::note::Note;
+use crate::model::file_location::FileLocation;
+use crate::model::note::NoteSpan;
+use anyhow::Result;
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 #[derive(Debug)]
 pub struct KnowledgeTree {
@@ -135,7 +135,9 @@ impl KnowledgeTree {
 
     #[allow(dead_code)]
     pub fn visit<F>(&self, f: &F) -> Result<()>
-        where F: Fn(&KnowledgeTree) -> Result<()> {
+    where
+        F: Fn(&KnowledgeTree) -> Result<()>,
+    {
         f(self)?;
 
         for (_, n) in &self.children {
@@ -146,7 +148,9 @@ impl KnowledgeTree {
     }
 
     pub fn visit_mut<F>(&mut self, f: &F) -> Result<()>
-        where F: Fn(&mut KnowledgeTree) -> Result<()> {
+    where
+        F: Fn(&mut KnowledgeTree) -> Result<()>,
+    {
         f(self)?;
 
         for (_, n) in &mut self.children {
@@ -159,9 +163,9 @@ impl KnowledgeTree {
 
 #[cfg(test)]
 mod test {
-    use std::cell::RefCell;
-    use crate::model::note::NoteSpan;
     use super::*;
+    use crate::model::note::NoteSpan;
+    use std::cell::RefCell;
 
     #[test]
     fn knowledge_tree_empty() {
@@ -180,25 +184,43 @@ mod test {
 
         let note1a = Note::new(
             FileLocation::new_relative("file1.go", 333),
-            vec!(NoteSpan::Text("Note 1".to_string())),
+            vec![NoteSpan::Text("Note 1".to_string())],
         );
 
         let note1b = Note::new(
             FileLocation::new_relative("file1.go", 444),
-            vec!(NoteSpan::Text("Note 1b".to_string())),
+            vec![NoteSpan::Text("Note 1b".to_string())],
         );
 
         let note2 = Note::new(
             FileLocation::new_relative("file2.go", 333),
-            vec!(NoteSpan::Text("Note 2".to_string())),
+            vec![NoteSpan::Text("Note 2".to_string())],
         );
 
         kt.add_note(&handle1, note1a.clone());
         kt.add_note(&handle1, note1b.clone());
         kt.add_note(&handle2, note2.clone());
 
-        assert!(kt.children.get("a").unwrap().children.get("b").unwrap().children.get("c").is_some());
-        assert!(kt.children.get("a").unwrap().children.get("b").unwrap().children.get("d").is_some());
+        assert!(kt
+            .children
+            .get("a")
+            .unwrap()
+            .children
+            .get("b")
+            .unwrap()
+            .children
+            .get("c")
+            .is_some());
+        assert!(kt
+            .children
+            .get("a")
+            .unwrap()
+            .children
+            .get("b")
+            .unwrap()
+            .children
+            .get("d")
+            .is_some());
 
         assert_eq!(vec!(note1a, note1b), kt.find_node(&handle1).unwrap().notes);
         assert_eq!(vec!(note2), kt.find_node(&handle2).unwrap().notes);
@@ -210,15 +232,9 @@ mod test {
 
         let handle = Handle::from_str("a/b/c").unwrap();
 
-        let note1 = Note::new(
-            FileLocation::new_relative("file1.go", 333),
-            vec![],
-        );
+        let note1 = Note::new(FileLocation::new_relative("file1.go", 333), vec![]);
 
-        let note2 = Note::new(
-            FileLocation::new_relative("file1.go", 444),
-            vec![],
-        );
+        let note2 = Note::new(FileLocation::new_relative("file1.go", 444), vec![]);
 
         kt.add_note(&handle, note1.clone());
         kt.add_note(&handle, note2.clone());
@@ -227,7 +243,10 @@ mod test {
 
         assert!(node.notes.is_empty());
         assert_eq!(
-            vec!(FileLocation::new_relative("file1.go", 333), FileLocation::new_relative("file1.go", 444)),
+            vec!(
+                FileLocation::new_relative("file1.go", 333),
+                FileLocation::new_relative("file1.go", 444)
+            ),
             node.extra,
         )
     }
@@ -275,13 +294,21 @@ mod test {
         kt.visit_mut(&|n| {
             visited.borrow_mut().push(n.handle.to_string());
             Ok(())
-        }).unwrap();
+        })
+        .unwrap();
 
-        assert_eq!(vec!(
-            "",
-            "a", "a / b", "a / b / c",
-            "a / b / d",
-            "x", "x / y", "x / y / z"
-        ), visited.into_inner());
+        assert_eq!(
+            vec!(
+                "",
+                "a",
+                "a / b",
+                "a / b / c",
+                "a / b / d",
+                "x",
+                "x / y",
+                "x / y / z"
+            ),
+            visited.into_inner()
+        );
     }
 }

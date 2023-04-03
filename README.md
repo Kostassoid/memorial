@@ -40,7 +40,7 @@ Current release: **Unreleased** [Changelog](CHANGELOG.md)
 Download and unzip binaries for your OS:
 - [Windows x86-64](https://github.com/Kostassoid/memorial/releases/download/v0.1.0/memorial-cli-v0.1.0-x86_64-pc-windows-gnu.zip)
 - [macOS Intel](https://github.com/Kostassoid/memorial/releases/download/v0.1.0/memorial-cli-v0.1.0-x86_64-apple-darwin.tar.gz)
-- [macOS Apple](https://github.com/Kostassoid/memorial/releases/download/v0.1.0/memorial-cli-v0.1.0-aarch64-apple-darwin.tar.gz) (Experimental)
+- [macOS Apple](https://github.com/Kostassoid/memorial/releases/download/v0.1.0/memorial-cli-v0.1.0-aarch64-apple-darwin.tar.gz)
 - [Linux x86-64](https://github.com/Kostassoid/memorial/releases/download/v0.1.0/memorial-cli-v0.1.0-x86_64-unknown-linux-musl.tar.gz)
 
 ## Usage

@@ -1,11 +1,11 @@
-use std::collections::HashMap;
-use std::string::ToString;
-use url::Url;
-use anyhow::Result;
-use strfmt::Format;
 use crate::decorators::Decorator;
 use crate::model::file_location::{FileLocation, FilePath};
 use crate::model::knowledge::KnowledgeTree;
+use anyhow::Result;
+use std::collections::HashMap;
+use std::string::ToString;
+use strfmt::Format;
+use url::Url;
 
 pub struct LinksDecorator {
     root: String,
@@ -17,7 +17,7 @@ const DEFAULT_FORMAT: &str = "{root}/{path}";
 impl LinksDecorator {
     pub fn new(root: String, format: Option<String>) -> Result<LinksDecorator> {
         let format = format
-            .or_else(|| { Self::resolve_format(&root) })
+            .or_else(|| Self::resolve_format(&root))
             .unwrap_or(DEFAULT_FORMAT.to_string());
 
         Ok(LinksDecorator {
@@ -28,7 +28,7 @@ impl LinksDecorator {
 
     fn resolve_format(root: &str) -> Option<String> {
         if root.contains("github") || root.contains("gitlab") {
-            return Some("{root}/blob/master/{path}#L{line}".to_string())
+            return Some("{root}/blob/master/{path}#L{line}".to_string());
         }
 
         None
@@ -47,7 +47,7 @@ impl LinksDecorator {
                 let url = Url::parse(&self.format.format(&vars)?)?;
 
                 l.replace_path(FilePath::AbsoluteUrl(url));
-            },
+            }
             _ => {}
         }
 
@@ -61,11 +61,11 @@ impl Decorator for LinksDecorator {
             for n in node.notes_mut() {
                 let l = n.location_mut();
                 self.wrap(l)?;
-            };
+            }
 
             for l in node.extra_mut() {
                 self.wrap(l)?;
-            };
+            }
 
             Ok(())
         })

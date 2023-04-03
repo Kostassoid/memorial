@@ -1,7 +1,7 @@
 mod cli;
 
-use anyhow::Result;
 use crate::cli::app::App;
+use anyhow::Result;
 
 fn main() -> Result<()> {
     App::new()?.run()

@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use anyhow::Result;
+use std::path::PathBuf;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Event {

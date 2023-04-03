@@ -1,7 +1,7 @@
-use std::path::Path;
 use anyhow::{anyhow, Context, Result};
-use serde_derive::{Deserialize};
 use derive_getters::Getters;
+use serde_derive::Deserialize;
+use std::path::Path;
 
 #[derive(Deserialize, Debug, Getters)]
 pub struct Config {

@@ -1,11 +1,11 @@
+use anyhow::{anyhow, Result};
 use std::fmt::{Display, Formatter};
-use anyhow::{Result, anyhow};
 
 pub type HandlePart = String;
 
 #[derive(PartialEq, Eq, Debug, Clone, Hash)]
 pub struct Handle {
-    parts: Vec<HandlePart>
+    parts: Vec<HandlePart>,
 }
 
 impl Handle {
@@ -19,11 +19,11 @@ impl Handle {
 impl Handle {
     pub fn from_parts(parts: Vec<HandlePart>) -> Result<Handle> {
         if parts.is_empty() {
-            return Err(anyhow!("Empty handle".to_string()))
+            return Err(anyhow!("Empty handle".to_string()));
         }
 
         if parts.iter().any(|p| p.is_empty()) {
-            return Err(anyhow!("Empty handle part"))
+            return Err(anyhow!("Empty handle part"));
         }
 
         Ok(Handle { parts })

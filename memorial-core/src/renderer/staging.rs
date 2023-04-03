@@ -1,11 +1,11 @@
+use anyhow::Result;
 use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use anyhow::Result;
 
 pub struct StagingArea {
-    staged: HashMap<PathBuf, StagedFile>
+    staged: HashMap<PathBuf, StagedFile>,
 }
 
 impl StagingArea {
@@ -37,7 +37,11 @@ impl StagingArea {
 
     pub fn flush_to_stdout(&mut self) -> Result<()> {
         for (path, file) in self.staged.drain() {
-            println!("Staged file: {}\n{}\n\n", &path.display(), String::from_utf8(file.contents)?)
+            println!(
+                "Staged file: {}\n{}\n\n",
+                &path.display(),
+                String::from_utf8(file.contents)?
+            )
         }
 
         Ok(())

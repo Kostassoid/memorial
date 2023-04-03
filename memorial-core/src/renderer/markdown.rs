@@ -1,15 +1,14 @@
-use std::fmt::Write;
-use anyhow::Result;
 use crate::model::attributes;
 use crate::model::file_location::FileLocation;
 use crate::model::handle::Handle;
 use crate::model::knowledge::KnowledgeTree;
 use crate::model::note::{Note, NoteSpan};
-use crate::renderer::Renderer;
 use crate::renderer::staging::{StagedFile, StagingArea};
+use crate::renderer::Renderer;
+use anyhow::Result;
+use std::fmt::Write;
 
-pub struct MarkdownRenderer {
-}
+pub struct MarkdownRenderer {}
 
 struct RendererSession<'a> {
     root: &'a KnowledgeTree,
@@ -18,8 +17,7 @@ struct RendererSession<'a> {
 
 impl MarkdownRenderer {
     pub fn new() -> MarkdownRenderer {
-        MarkdownRenderer{
-        }
+        MarkdownRenderer {}
     }
 }
 
@@ -33,11 +31,12 @@ impl Renderer for MarkdownRenderer {
         RendererSession {
             root,
             out: fs.open_as_new(root.attributes().get(attributes::OUTPUT_FILE_NAME).unwrap()),
-        }.render()
+        }
+        .render()
     }
 }
 
-impl <'a> RendererSession<'a> {
+impl<'a> RendererSession<'a> {
     fn render(mut self) -> Result<()> {
         self.render_node(1, self.root)?;
 
@@ -95,14 +94,16 @@ impl <'a> RendererSession<'a> {
     }
 
     fn render_toc(&mut self, level: usize, node: &KnowledgeTree) -> Result<()> {
-        if node.attributes().get(attributes::TOC).unwrap_or(&"false".to_string()) != "true" {
-            return Ok(())
+        if node
+            .attributes()
+            .get(attributes::TOC)
+            .unwrap_or(&"false".to_string())
+            != "true"
+        {
+            return Ok(());
         }
 
-        self.w(&*format!(
-            "{} Table of contents\n\n",
-            "#".repeat(level),
-        ))?;
+        self.w(&*format!("{} Table of contents\n\n", "#".repeat(level),))?;
 
         self.render_toc_links(0, node)?;
 
@@ -113,7 +114,11 @@ impl <'a> RendererSession<'a> {
 
     fn render_toc_links(&mut self, level: usize, node: &KnowledgeTree) -> Result<()> {
         if level > 0 {
-            self.w(&*format!("{}- {}\n", "\t".repeat(level - 1), self.format_link(node.handle())))?;
+            self.w(&*format!(
+                "{}- {}\n",
+                "\t".repeat(level - 1),
+                self.format_link(node.handle())
+            ))?;
         }
 
         for (_, n) in node.children() {
@@ -128,17 +133,17 @@ impl <'a> RendererSession<'a> {
 
         for s in note.spans() {
             match s {
-                NoteSpan::Text(s) => {
-                    formatted.write_str(&format!("{} ", s.replace("\n", "\n> "))).unwrap()
-                },
-                NoteSpan::Link(handle) => {
-                    formatted.write_str(&self.format_link(handle)).unwrap()
-                }
+                NoteSpan::Text(s) => formatted
+                    .write_str(&format!("{} ", s.replace("\n", "\n> ")))
+                    .unwrap(),
+                NoteSpan::Link(handle) => formatted.write_str(&self.format_link(handle)).unwrap(),
             }
         }
 
         let l = note.location();
-        formatted.write_str(&format!("\n\nat {}\n", Self::format_location(l))).unwrap();
+        formatted
+            .write_str(&format!("\n\nat {}\n", Self::format_location(l)))
+            .unwrap();
 
         formatted.write_str("\n\n").unwrap();
 
@@ -158,19 +163,26 @@ impl <'a> RendererSession<'a> {
     }
 
     fn resolve_node_title(&self, handle: &Handle) -> String {
-        self.root.find_node(handle)
+        self.root
+            .find_node(handle)
             .map(|n| n.attributes().get(attributes::TITLE))
             .flatten()
             .map(|s| s.to_string())
-            .unwrap_or(handle.parts().last().unwrap_or(&String::from("(root)")).to_string())
+            .unwrap_or(
+                handle
+                    .parts()
+                    .last()
+                    .unwrap_or(&String::from("(root)"))
+                    .to_string(),
+            )
     }
 }
 
 #[cfg(test)]
 mod test {
-    use std::collections::HashMap;
-    use crate::model::handle::Handle;
     use super::*;
+    use crate::model::handle::Handle;
+    use std::collections::HashMap;
 
     #[test]
     fn render_from_knowledge_tree() {
@@ -181,7 +193,10 @@ mod test {
             HashMap::from([
                 (attributes::TITLE.to_string(), "Big Nice Title".to_string()),
                 (attributes::APP_VERSION.to_string(), "0.1.0".to_string()),
-                (attributes::TIMESTAMP.to_string(), "2023-03-01 12:34:56".to_string()),
+                (
+                    attributes::TIMESTAMP.to_string(),
+                    "2023-03-01 12:34:56".to_string(),
+                ),
                 (attributes::OUTPUT_FILE_NAME.to_string(), "test".to_string()),
                 (attributes::TOC.to_string(), "true".to_string()),
             ]),
@@ -191,15 +206,16 @@ mod test {
             &Handle::from_str("a/b/c").unwrap(),
             Note::new(
                 FileLocation::new_relative("path/to/file1.ext", 123),
-                vec![NoteSpan::Text("note 1".to_string()), NoteSpan::Link(Handle::from_str("a/b/d").unwrap())],
+                vec![
+                    NoteSpan::Text("note 1".to_string()),
+                    NoteSpan::Link(Handle::from_str("a/b/d").unwrap()),
+                ],
             ),
         );
 
         knowledge.merge_attributes(
             &Handle::from_str("a/b/c").unwrap(),
-            HashMap::from([
-                (attributes::TITLE.to_string(), "Sub title".to_string()),
-            ]),
+            HashMap::from([(attributes::TITLE.to_string(), "Sub title".to_string())]),
         );
 
         knowledge.add_note(

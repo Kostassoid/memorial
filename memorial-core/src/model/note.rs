@@ -1,5 +1,5 @@
-use crate::model::file_location::FileLocation;
 use super::handle::Handle;
+use crate::model::file_location::FileLocation;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub enum NoteSpan {
@@ -15,10 +15,7 @@ pub struct Note {
 
 impl Note {
     pub fn new(location: FileLocation, spans: Vec<NoteSpan>) -> Note {
-        Note {
-            location,
-            spans,
-        }
+        Note { location, spans }
     }
 
     pub fn spans(&self) -> &Vec<NoteSpan> {
