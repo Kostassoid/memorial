@@ -1,19 +1,21 @@
+use std::collections::HashMap;
+use std::path::PathBuf;
+use std::sync::mpsc;
+use std::sync::mpsc::{Receiver, Sender};
+
+use anyhow::Result;
+use pest::error::LineColLocation;
+
 use crate::api::events::{Event, EventHandler};
+use crate::collector::{quote_parser, QuoteSpan};
 use crate::collector::file_matcher::FileTypeMatcher;
 use crate::collector::quote_parser::QuoteParser;
-use crate::collector::{quote_parser, QuoteSpan};
 use crate::model::attributes;
 use crate::model::file_location::FileLocation;
 use crate::model::knowledge::KnowledgeTree;
 use crate::model::note::{Note, NoteSpan};
 use crate::parser::{FileParser, Quote};
 use crate::scanner::{File, FileScanner};
-use anyhow::Result;
-use pest::error::LineColLocation;
-use std::collections::HashMap;
-use std::path::PathBuf;
-use std::sync::mpsc;
-use std::sync::mpsc::{Receiver, Sender};
 
 pub struct Collector {
     knowledge: KnowledgeTree,
@@ -34,7 +36,7 @@ impl Collector {
 
     pub fn scan<X: File>(
         &mut self,
-        scanner: &dyn FileScanner<F = X>,
+        scanner: &dyn FileScanner<F=X>,
         event_handler: &mut dyn EventHandler,
     ) -> Result<()> {
         let (tx, rx): (Sender<X>, Receiver<X>) = mpsc::channel();
@@ -95,7 +97,7 @@ impl Collector {
             QuoteSpan::Link(h) => Some(h),
             _ => None,
         }
-        .unwrap(); //todo: handle more gracefully
+            .unwrap(); //todo: handle more gracefully
 
         let mut attributes: HashMap<String, String> = Default::default();
         let mut note_spans: Vec<NoteSpan> = Default::default();
@@ -138,13 +140,14 @@ impl Collector {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use crate::api::events::StubEventHandler;
     use crate::model::handle::Handle;
     use crate::parser::go::GoParser;
 
+    use super::*;
+
     #[test]
-    fn publishes_events_for_failed_parsings() {
+    fn publishes_events_for_unknown_file_types() {
         let scanner = StubScanner {
             files: vec![StubFile {
                 path: "path/to/file.xxx".into(),
@@ -163,7 +166,7 @@ mod test {
             vec!(
                 Event::ScanStarted,
                 Event::ParsingStarted(path.clone()),
-                Event::ParsingFailed(path.clone(), "Unknown file type".into()),
+                Event::UnknownFileTypeEncountered(path.clone()),
                 Event::ScanFinished,
             ),
             event_handler.events

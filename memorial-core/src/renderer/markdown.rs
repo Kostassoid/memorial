@@ -7,8 +7,8 @@ use crate::model::file_location::FileLocation;
 use crate::model::handle::Handle;
 use crate::model::knowledge::KnowledgeTree;
 use crate::model::note::{Note, NoteSpan};
-use crate::renderer::Renderer;
 use crate::renderer::staging::{StagedFile, StagingArea};
+use crate::renderer::Renderer;
 
 pub struct MarkdownRenderer {}
 
@@ -34,7 +34,7 @@ impl Renderer for MarkdownRenderer {
             root,
             out: fs.open_as_new(root.attributes().get(attributes::OUTPUT_FILE_NAME).unwrap()),
         }
-            .render()
+        .render()
     }
 }
 
@@ -111,7 +111,7 @@ impl<'a> RendererSession<'a> {
             return Ok(());
         }
 
-        self.w(&*format!("{} Table of contents\n\n", "#".repeat(level), ))?;
+        self.w(&*format!("{} Table of contents\n\n", "#".repeat(level),))?;
 
         self.render_toc_links(0, node)?;
 

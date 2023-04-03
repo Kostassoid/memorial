@@ -8,16 +8,16 @@ use clap::{Arg, ArgAction, Command};
 use memorial_core::api::events::{Event, EventHandler};
 use memorial_core::collector::collector::Collector;
 use memorial_core::collector::file_matcher::FileTypeMatcher;
-use memorial_core::decorators::{Decorator, links, root};
+use memorial_core::decorators::{links, root, Decorator};
 use memorial_core::model::attributes;
 use memorial_core::model::handle::Handle;
 use memorial_core::parser::go::GoParser;
 use memorial_core::parser::rust::RustParser;
 use memorial_core::renderer::markdown::MarkdownRenderer;
-use memorial_core::renderer::Renderer;
 use memorial_core::renderer::staging::StagingArea;
-use memorial_core::scanner::FileScanner;
+use memorial_core::renderer::Renderer;
 use memorial_core::scanner::local::LocalFileScanner;
+use memorial_core::scanner::FileScanner;
 
 use crate::cli::config::Config;
 
@@ -42,9 +42,11 @@ impl App {
                     .default_value("memorial.toml")
                     .action(ArgAction::Set),
             )
-            .subcommand( //@[CLI] `scan` command is assumed implicitly to simplify the interaction.
-                         Command::new("scan")
-                             .about("Scans source files and generates documentation files from found notes.")
+            .subcommand(
+                //@[CLI] `scan` command is assumed implicitly to simplify the interaction.
+                Command::new("scan").about(
+                    "Scans source files and generates documentation files from found notes.",
+                ),
             )
             .arg(
                 Arg::new("verbose")
