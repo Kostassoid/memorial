@@ -1,15 +1,11 @@
 title = "Memorial Implementation Notes"
 
 [scanner]
-# skip-unknown-files = false
-# skip-parsing-errors = false
 
 [scanner.local]
-# root = "."
 include = [
     "**/src/**/*.rs",
 ]
-# exclude = []
 
 [decorators]
 external_links = { root = "https://github.com/Kostassoid/memorial/" }

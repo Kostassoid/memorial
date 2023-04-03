@@ -1,5 +1,7 @@
 # Memorial
 
+[![build](https://github.com/Kostassoid/memorial/workflows/CICD/badge.svg)](https://github.com/Kostassoid/memorial/actions)
+
 A CLI tool for collecting notes from the source code files (as comments) and compiling them into documentation files 
 using hierarchical structure separated from the source code file structure.
 
@@ -15,7 +17,7 @@ possible to the source code to remain up-to-date. Not to mention all the benefit
 The idea is similar to Javadoc and other such tools with the main difference of separating documentation structure from 
 the code structure. The format is also less strict.
 
-![example](memorial-quick-example.png)
+![example](memorial-demo.png)
 
 ## Features
 
@@ -31,13 +33,15 @@ the code structure. The format is also less strict.
 | .proto    | Protobuf          |
 | .rust     | Rust              |
 
-### Output formats
-
-- Markdown only for now.
-
 ## Downloads
 
-TBA
+Current release: **Unreleased** [Changelog](CHANGELOG.md)
+
+Download and unzip binaries for your OS:
+- [Windows x86-64](https://github.com/Kostassoid/memorial/releases/download/v0.1.0/memorial-cli-v0.1.0-x86_64-pc-windows-gnu.zip)
+- [macOS Intel](https://github.com/Kostassoid/memorial/releases/download/v0.1.0/memorial-cli-v0.1.0-x86_64-apple-darwin.tar.gz)
+- [macOS Apple](https://github.com/Kostassoid/memorial/releases/download/v0.1.0/memorial-cli-v0.1.0-aarch64-apple-darwin.tar.gz) (Experimental)
+- [Linux x86-64](https://github.com/Kostassoid/memorial/releases/download/v0.1.0/memorial-cli-v0.1.0-x86_64-unknown-linux-musl.tar.gz)
 
 ## Usage
 

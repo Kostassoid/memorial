@@ -10,7 +10,7 @@ skip-parsing-errors = true
 
 # Configuration for a local file system scanner, which is the only one available for now
 [scanner.local]
-# Starting path for scanning (default: . or current directory)
+# Starting path for scanning (default: current directory)
 root = "."
 # An array of globs for matching files by name
 include = [
@@ -26,7 +26,7 @@ external_links = { root = "https://github.com/Kostassoid/memorial/" }
 
 # Configuration for the renderer and documentation persistence
 [output]
-# The root path writing the document(s) (default: . or current directory)
+# The root path writing the document(s) (default: current directory)
 root = "."
 # Configures the default Markdown renderer.
 # `toc` controls whether or not table of contents should be generated.

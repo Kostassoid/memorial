@@ -2,6 +2,11 @@
 name = "memorial-cli"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "A tool for collecting documentation from code comments"
+repository = "https://github.com/Kostassoid/memorial"
+categories = ["command-line-utilities"]
+authors = ["Konstantin Alexandrov <k@kostassoid.com>"]
 
 [dependencies]
 anyhow = "1.0"
