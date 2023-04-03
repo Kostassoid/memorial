@@ -16,6 +16,8 @@ pub struct Scanner {
     local: LocalScanner,
     #[serde(alias = "skip-unknown-files")]
     skip_unknown_files: Option<bool>,
+    #[serde(alias = "skip-parsing-errors")]
+    skip_parsing_errors: Option<bool>,
 }
 
 #[derive(Deserialize, Debug, Getters)]

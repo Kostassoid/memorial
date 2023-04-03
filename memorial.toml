@@ -1,8 +1,8 @@
 title = "Memorial Implementation Notes"
 
 [scanner]
-# skip-unknown-files = true
-# skip-parsing-errors = true
+# skip-unknown-files = false
+# skip-parsing-errors = false
 
 [scanner.local]
 # root = "."
@@ -15,5 +15,5 @@ include = [
 external_links = { root = "https://github.com/Kostassoid/memorial/" }
 
 [output]
-root = "."
+# root = "docs"
 markdown = { path = "IMPLEMENTATION.md", toc = true }

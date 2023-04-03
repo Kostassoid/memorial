@@ -1,5 +1,21 @@
 [workspace]
 members = [
   "memorial-macros",
+  "memorial-core",
   "memorial-cli",
 ]
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+incremental = true
+
+[profile.dev]
+opt-level = 0
+debug = true
+
+[profile.test]
+opt-level = 3
+incremental = true
+debug-assertions = true
+debug = true

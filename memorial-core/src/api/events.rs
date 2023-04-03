@@ -4,8 +4,9 @@ use anyhow::Result;
 #[derive(Debug, Eq, PartialEq)]
 pub enum Event {
     ScanStarted,
+    UnknownFileTypeEncountered(PathBuf),
     ParsingStarted(PathBuf),
-    ParsingWarning(PathBuf, String),
+    ParsingFailed(PathBuf, String),
     ParsingFinished(PathBuf, usize), // a number of found notes
     ScanFinished,
 }

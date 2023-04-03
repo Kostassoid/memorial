@@ -1,0 +1,33 @@
+# The top header for the generated document
+title = "Document title"
+
+# Configuration for file enumeration and parsing
+[scanner]
+# Ignore files with unknown extensions (default: true)
+skip-unknown-files = true
+# Ignore error when parsing the notes (default: true)
+skip-parsing-errors = true
+
+# Configuration for a local file system scanner, which is the only one available for now
+[scanner.local]
+# Starting path for scanning (default: . or current directory)
+root = "."
+# An array of globs for matching files by name
+include = [
+    "**/src/**/*.rs",
+]
+# An array of globs for excluding files by name (default: [])
+exclude = []
+
+# Configuration for decorators running post-processing on the collected tree of notes before passing it to the renderer
+[decorators]
+# Turns all source file references to proper URLs using a root path
+external_links = { root = "https://github.com/Kostassoid/memorial/" }
+
+# Configuration for the renderer and documentation persistence
+[output]
+# The root path writing the document(s) (default: . or current directory)
+root = "."
+# Configures the default Markdown renderer.
+# `toc` controls whether or not table of contents should be generated.
+markdown = { path = "IMPLEMENTATION.md", toc = true }

@@ -1,22 +1,22 @@
 use std::collections::HashMap;
 use std::env;
 use std::path::PathBuf;
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Result};
 use clap::{Arg, ArgAction, Command};
-use crate::api::events::{Event, EventHandler};
-use crate::cli::config::{Config, MarkdownOutput, Scanner};
-use crate::collector::collector::Collector;
-use crate::collector::file_matcher::FileTypeMatcher;
-use crate::decorators::{Decorator, links, root};
-use crate::model::attributes;
-use crate::model::handle::Handle;
-use crate::renderer::markdown::MarkdownRenderer;
-use crate::scanner::local::LocalFileScanner;
-use crate::parser::go::GoParser;
-use crate::parser::rust::RustParser;
-use crate::renderer::Renderer;
-use crate::renderer::staging::StagingArea;
-use crate::scanner::FileScanner;
+use memorial_core::api::events::{Event, EventHandler};
+use memorial_core::collector::collector::Collector;
+use memorial_core::collector::file_matcher::FileTypeMatcher;
+use memorial_core::decorators::{Decorator, links, root};
+use memorial_core::model::attributes;
+use memorial_core::model::handle::Handle;
+use memorial_core::renderer::markdown::MarkdownRenderer;
+use memorial_core::scanner::local::LocalFileScanner;
+use memorial_core::parser::go::GoParser;
+use memorial_core::parser::rust::RustParser;
+use memorial_core::renderer::Renderer;
+use memorial_core::renderer::staging::StagingArea;
+use memorial_core::scanner::FileScanner;
+use crate::cli::config::Config;
 
 pub struct App {
     config: Config,
@@ -82,9 +82,9 @@ impl App {
 
         decorators.iter().for_each(|d| d.decorate(collector.knowledge_mut()).unwrap());
 
-        /*@[CLI/Rendering]
-        Even though the overall design and the config model allow for using multiple renderers
-        (even operating over the same collected notes), this feels like a rabbit hole of over-generalization.
+        /*@[CLI/Configuration]
+        Even though the overall design and the config model allow for using multiple renderers, this
+        feels like a rabbit hole of over-generalization.
         So the idea is to keep Markdown as the one and only renderer until the rest of the project is
         mature enough and there's a clear(er) vision of the roadmap.
         */
@@ -135,9 +135,7 @@ impl App {
     }
 
     fn build_collector(&self) -> Result<Collector> {
-        let mut collector = Collector::new(
-            self.config.scanner().skip_unknown_files().unwrap_or(true)
-        );
+        let mut collector = Collector::new();
         collector.register_parser(FileTypeMatcher::Extension("go".to_string()), Box::new(GoParser {}));
         collector.register_parser(FileTypeMatcher::Extension("rs".to_string()), Box::new(RustParser {}));
 
@@ -166,10 +164,21 @@ impl EventHandler for App {
     fn send(&mut self, event: Event) -> Result<()> {
         match event {
             Event::ScanStarted => println!("Started scanning..."),
+            Event::UnknownFileTypeEncountered(_) => {
+                println!("- Unknown file type");
+                if !self.config.scanner().skip_unknown_files().unwrap_or(true) {
+                    return Err(anyhow!("Check scanner configuration or set `skip-unknown-files` property to `true`."));
+                }
+            },
             Event::ParsingStarted(p) => println!("Parsing {}", p.to_str().unwrap()),
+            Event::ParsingFailed(_, msg) => {
+                println!("- Failed to parse: {}", msg);
+                if !self.config.scanner().skip_parsing_errors().unwrap_or(true) {
+                    return Err(anyhow!("Check the comment format or set `skip-parsing-errors` property to `true`."));
+                }
+            },
             Event::ParsingFinished(_, notes) if notes > 0 => println!("- Found {} note(s)", notes),
             Event::ParsingFinished(_, _) => { },
-            Event::ParsingWarning(_, msg) => println!("- Warning: {}", msg),
             Event::ScanFinished => { },
         }
         Ok(())

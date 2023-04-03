@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use pest::error::LineColLocation;
 use crate::api::events::{Event, EventHandler};
 use crate::collector::file_matcher::FileTypeMatcher;
@@ -16,15 +16,13 @@ use crate::parser::{FileParser, Quote};
 use crate::scanner::{File, FileScanner};
 
 pub struct Collector {
-    skip_unknown_files: bool,
     knowledge: KnowledgeTree,
     parsers: HashMap<FileTypeMatcher, Box<dyn FileParser>>,
 }
 
 impl Collector {
-    pub fn new(skip_unknown_files: bool) -> Collector {
+    pub fn new() -> Collector {
         Collector {
-            skip_unknown_files,
             knowledge: KnowledgeTree::root(),
             parsers: Default::default(),
         }
@@ -50,11 +48,10 @@ impl Collector {
             let parser = match self
                 .find_parser(&path) {
                 Some(p) => p,
-                _ if self.skip_unknown_files => {
-                    event_handler.send(Event::ParsingWarning(path.clone(), "Unknown file type".to_string()))?;
+                _ => {
+                    event_handler.send(Event::UnknownFileTypeEncountered(path.clone()))?;
                     continue;
                 }
-                _ => return Err(anyhow!("Unknown file type {}", &path.display()))
             };
 
             let quotes = parser.parse_from_str(&f.contents()?)?;
@@ -63,19 +60,20 @@ impl Collector {
 
             let errors: Vec<anyhow::Error> = quotes.into_iter()
                 .filter_map(|q| { self.process_quote(q, path.clone()).err() })
-                .collect();
-
-            event_handler.send(Event::ParsingFinished(path.clone(), quotes_len - errors.len()))?;
-
-            //@[Core/Collector] Ignoring parsing errors on collected quotes on (1,1) position to reduce false warnings.
-            errors.iter()
                 .filter(|e| {
+                    //@[Core/Collector] Ignoring parsing errors on collected quotes on (1,1) position to reduce false warnings.
                     match e.downcast_ref::<pest::error::Error<quote_parser::Rule>>() {
                         Some(ee) if ee.line_col == LineColLocation::Pos((1, 1)) => false,
                         _ => true
                     }
                 })
-                .for_each(|e| event_handler.send(Event::ParsingWarning(path.clone(), e.to_string())).unwrap());
+                .collect();
+
+            for e in &errors {
+                event_handler.send(Event::ParsingFailed(path.clone(), e.to_string()))?;
+            }
+
+            event_handler.send(Event::ParsingFinished(path.clone(), quotes_len - errors.len()))?;
         }
 
         event_handler.send(Event::ScanFinished)?;
@@ -139,7 +137,7 @@ mod test {
     use crate::parser::go::GoParser;
 
     #[test]
-    fn can_skip_unknown_files() {
+    fn publishes_events_for_failed_parsings() {
         let scanner = StubScanner {
             files: vec!(
                 StubFile {
@@ -150,18 +148,7 @@ mod test {
         };
 
         let mut event_handler = StubEventHandler::new();
-        let mut collector = Collector::new(false);
-
-        let result = collector.scan(&scanner, &mut event_handler);
-        assert!(matches!(result, Err(_)));
-
-        assert_eq!(vec!(
-            Event::ScanStarted,
-            Event::ParsingStarted("path/to/file.xxx".into()),
-        ), event_handler.events);
-
-        let mut event_handler = StubEventHandler::new();
-        let mut collector = Collector::new(true);
+        let mut collector = Collector::new();
 
         let result = collector.scan(&scanner, &mut event_handler);
         assert!(matches!(result, Ok(_)));
@@ -170,7 +157,7 @@ mod test {
         assert_eq!(vec!(
             Event::ScanStarted,
             Event::ParsingStarted(path.clone()),
-            Event::ParsingWarning(path.clone(), "Unknown file type".into()),
+            Event::ParsingFailed(path.clone(), "Unknown file type".into()),
             Event::ScanFinished,
         ), event_handler.events);
     }
@@ -191,7 +178,7 @@ mod test {
         };
 
         let mut event_handler = StubEventHandler::new();
-        let mut collector = Collector::new(false);
+        let mut collector = Collector::new();
 
         collector.register_parser(FileTypeMatcher::Extension("go".to_string()), Box::new(GoParser {}));
 
