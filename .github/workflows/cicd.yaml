@@ -19,12 +19,6 @@ jobs:
     name: Ensure 'cargo fmt' has been run
     runs-on: ubuntu-22.04
     steps:
-      #      - uses: actions-rs/toolchain@v1
-      #        with:
-      #          toolchain: stable
-      #          default: true
-      #          profile: minimal
-      #          components: rustfmt
       - uses: actions/checkout@v3
       - run: cargo fmt -- --check
 
@@ -87,11 +81,7 @@ jobs:
           echo "MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx12.1 --show-sdk-platform-version)" >> $GITHUB_ENV
 
       - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: ${{ matrix.job.use-cross }}
-          command: build
-          args: --locked --release --target=${{ matrix.job.target }}
+        run: ${{ env.CARGO }} build --locked --release ${{ env.TARGET_FLAGS }}
 
       - name: Run tests
         if: ${{ !matrix.job.skip-tests }}
