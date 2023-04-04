@@ -29,7 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         job:
-          - { target: x86_64-pc-windows-gnu       , os: windows-2019 }
+          - { target: x86_64-pc-windows-gnu       , os: windows-2022 }
           - { target: x86_64-unknown-linux-musl   , os: ubuntu-22.04 }
           - { target: x86_64-apple-darwin         , os: macos-11 }
           - { target: aarch64-apple-darwin        , os: macos-11     , skip-tests: true }
@@ -49,13 +49,18 @@ jobs:
           toolchain: stable
           target: ${{ matrix.job.target }}
 
-      - name: Install Cross
+      - name: Set Cargo env
         shell: bash
         run: |
-          cargo install cross
-          echo "CARGO=cross" >> $GITHUB_ENV
-          echo "TARGET_FLAGS=--target ${{ matrix.job.target }}" >> $GITHUB_ENV
-          echo "TARGET_DIR=./target/${{ matrix.job.target }}" >> $GITHUB_ENV          
+          echo "CARGO=cargo" >> $GITHUB_ENV
+
+      #      - name: Install Cross
+      #        shell: bash
+      #        run: |
+      #          cargo install cross
+      #          echo "CARGO=cross" >> $GITHUB_ENV
+      #          echo "TARGET_FLAGS=--target ${{ matrix.job.target }}" >> $GITHUB_ENV
+      #          echo "TARGET_DIR=./target/${{ matrix.job.target }}" >> $GITHUB_ENV
 
       - name: Show version information (Rust, cargo)
         shell: bash
