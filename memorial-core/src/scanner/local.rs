@@ -83,6 +83,7 @@ impl File for LocalFile {
 
 #[cfg(test)]
 mod test {
+    use std::collections::HashSet;
     use std::env;
     use std::sync::mpsc;
     use std::sync::mpsc::Receiver;
@@ -106,18 +107,18 @@ mod test {
 
         assert_eq!(2, valid_files.len());
         assert_eq!(
-            vec!(
+            HashSet::from_iter(vec!(
                 PathBuf::from_iter(["src", "tests", "cases", "go", "app.go"])
                     .to_str()
                     .unwrap(),
                 PathBuf::from_iter(["src", "tests", "cases", "go", "domain.go"])
                     .to_str()
                     .unwrap(),
-            ),
+            )),
             valid_files
                 .iter()
                 .map(|f| f.local_path.to_str().unwrap())
-                .collect::<Vec<_>>(),
+                .collect::<HashSet<_>>(),
         );
     }
 }
