@@ -11,7 +11,12 @@ use memorial_core::collector::file_matcher::FileTypeMatcher;
 use memorial_core::decorators::{links, root, Decorator};
 use memorial_core::model::attributes;
 use memorial_core::model::handle::Handle;
+use memorial_core::parser::csharp::CSharpParser;
 use memorial_core::parser::go::GoParser;
+use memorial_core::parser::java::JavaParser;
+use memorial_core::parser::javascript::JavaScriptParser;
+use memorial_core::parser::kotlin::KotlinParser;
+use memorial_core::parser::protobuf::ProtobufParser;
 use memorial_core::parser::rust::RustParser;
 use memorial_core::renderer::markdown::MarkdownRenderer;
 use memorial_core::renderer::staging::StagingArea;
@@ -164,8 +169,28 @@ impl App {
     fn build_collector(&self) -> Result<Collector> {
         let mut collector = Collector::new();
         collector.register_parser(
+            FileTypeMatcher::Extension("cs".to_string()),
+            Box::new(CSharpParser {}),
+        );
+        collector.register_parser(
             FileTypeMatcher::Extension("go".to_string()),
             Box::new(GoParser {}),
+        );
+        collector.register_parser(
+            FileTypeMatcher::Extension("java".to_string()),
+            Box::new(JavaParser {}),
+        );
+        collector.register_parser(
+            FileTypeMatcher::Extension("js".to_string()),
+            Box::new(JavaScriptParser {}),
+        );
+        collector.register_parser(
+            FileTypeMatcher::Extension("kt".to_string()),
+            Box::new(KotlinParser {}),
+        );
+        collector.register_parser(
+            FileTypeMatcher::Extension("proto".to_string()),
+            Box::new(ProtobufParser {}),
         );
         collector.register_parser(
             FileTypeMatcher::Extension("rs".to_string()),

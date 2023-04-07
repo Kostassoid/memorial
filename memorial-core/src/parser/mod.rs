@@ -1,7 +1,12 @@
-pub mod go;
-pub mod rust;
-
 use anyhow::Result;
+
+pub mod csharp;
+pub mod go;
+pub mod java;
+pub mod javascript;
+pub mod kotlin;
+pub mod protobuf;
+pub mod rust;
 
 // Naming it "comment" seems too limiting
 #[derive(Debug, Eq, PartialEq)]

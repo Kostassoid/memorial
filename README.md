@@ -1,20 +1,21 @@
 # Memorial
 
-[![build](https://github.com/Kostassoid/memorial/workflows/CICD/badge.svg)](https://github.com/Kostassoid/memorial/actions)
+![build](https://github.com/Kostassoid/memorial/actions/workflows/cicd.yaml/badge.svg)
 
-A CLI tool for collecting notes from the source code files (as comments) and compiling them into documentation files 
+A CLI tool for collecting notes from the source code files (as comments) and compiling them into documentation files
 using hierarchical structure separated from the source code file structure.
 
 Main uses:
+
 - Documenting domain implementation
 - Unifying notes on features implemented across different layers/repos
 - Organizing already existing comments
 
 The idea behind this tool is based on the assumption that the most precise documentation should be written along with
-the code itself by the person writing the code, i.e. the developer. Also, this documentation should be kept as close as 
+the code itself by the person writing the code, i.e. the developer. Also, this documentation should be kept as close as
 possible to the source code to remain up-to-date. Not to mention all the benefits of keeping the documentation in VCS.
 
-The idea is similar to Javadoc and other such tools with the main difference of separating documentation structure from 
+The idea is similar to Javadoc and other such tools with the main difference of separating documentation structure from
 the code structure. The format is also less strict.
 
 ![example](memorial-demo.png)
@@ -38,6 +39,7 @@ the code structure. The format is also less strict.
 Current release: **Unreleased** [Changelog](CHANGELOG.md)
 
 Download and unzip binaries for your OS:
+
 - [Windows x86-64](https://github.com/Kostassoid/memorial/releases/download/v0.1.0/memorial-cli-v0.1.0-x86_64-pc-windows-gnu.zip)
 - [macOS Intel](https://github.com/Kostassoid/memorial/releases/download/v0.1.0/memorial-cli-v0.1.0-x86_64-apple-darwin.tar.gz)
 - [macOS Apple](https://github.com/Kostassoid/memorial/releases/download/v0.1.0/memorial-cli-v0.1.0-aarch64-apple-darwin.tar.gz)
@@ -58,15 +60,17 @@ Full format of a note looks like this:
 
 #### Handle
 
-`Handle` is the only required part. A note should start with it, otherwise it will be ignored. A `Handle` places the note 
+`Handle` is the only required part. A note should start with it, otherwise it will be ignored. A `Handle` places the
+note
 within a documentation hierarchy, i.e. it points to a node in a tree.
-The format of a `Handle` is similar to a path in a file system, for example `@[Domain/Aggregate/Invariants]`. 
+The format of a `Handle` is similar to a path in a file system, for example `@[Domain/Aggregate/Invariants]`.
 It's not required to have any intermediate nodes defined as well, they will be created automatically.
 Each node can contain any number of notes.
 
 #### Attribute
 
-`Attributes` aren't part of the rendered document, but they control some aspects of collection and rendering. `Attributes`
+`Attributes` aren't part of the rendered document, but they control some aspects of collection and
+rendering. `Attributes`
 are assigned to the hierarchy nodes, not the individual notes (comments) with the only exception (see below).
 
 `Attribute` can be written as a key-value pair, separated by `:` or it can be just a key, in which case it works kind of
@@ -75,9 +79,9 @@ like a toggle.
 Most attributes are used internally. But the following attributes can be used additionally as part of the notes:
 
 - `{title:XXX}`
-  - overrides a title (or displayed name) of the node. Used by a renderer as a header/link title.
+    - overrides a title (or displayed name) of the node. Used by a renderer as a header/link title.
 - `{do-not-collect}`
-  - prevent a note from being added to the node. Primary use - setting node attributes.
+    - prevent a note from being added to the node. Primary use - setting node attributes.
 
 For example, the following note:
 
