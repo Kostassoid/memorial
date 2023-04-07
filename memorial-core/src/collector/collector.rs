@@ -12,20 +12,20 @@ use crate::collector::quote_parser::QuoteParser;
 use crate::collector::{quote_parser, QuoteSpan};
 use crate::model::attributes;
 use crate::model::file_location::FileLocation;
-use crate::model::knowledge::KnowledgeTree;
 use crate::model::note::{Note, NoteSpan};
+use crate::model::tree::Node;
 use crate::parser::{FileParser, Quote};
 use crate::scanner::{File, FileScanner};
 
 pub struct Collector {
-    knowledge: KnowledgeTree,
+    collected: Node,
     parsers: HashMap<FileTypeMatcher, Box<dyn FileParser>>,
 }
 
 impl Collector {
     pub fn new() -> Collector {
         Collector {
-            knowledge: KnowledgeTree::root(),
+            collected: Node::root(),
             parsers: Default::default(),
         }
     }
@@ -117,16 +117,16 @@ impl Collector {
         if attributes.contains_key(attributes::DO_NOT_COLLECT) {
             attributes.remove(attributes::DO_NOT_COLLECT);
         } else {
-            self.knowledge.add_note(&handle, note);
+            self.collected.add_note(&handle, note);
         }
 
-        self.knowledge.merge_attributes(&handle, attributes);
+        self.collected.merge_attributes(&handle, attributes);
 
         Ok(())
     }
 
-    pub fn knowledge_mut(&mut self) -> &mut KnowledgeTree {
-        &mut self.knowledge
+    pub fn collected_mut(&mut self) -> &mut Node {
+        &mut self.collected
     }
 
     fn find_parser(&self, path: &PathBuf) -> Option<&Box<dyn FileParser>> {
@@ -214,7 +214,7 @@ mod test {
         );
 
         let node = collector
-            .knowledge
+            .collected
             .find_node(&Handle::from_str("a/b/c").unwrap())
             .unwrap();
 

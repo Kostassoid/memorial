@@ -12,7 +12,7 @@ Main uses:
 - Organizing already existing comments
 
 The idea behind this tool is based on the assumption that the most precise documentation should be written along with
-the code itself by the person writing the code, i.e. the developer. Also, this documentation should be kept as close as
+the code itself by the person writing the code, i.e. the developer. This documentation should be kept as close as
 possible to the source code to remain up-to-date. Not to mention all the benefits of keeping the documentation in VCS.
 
 The idea is similar to Javadoc and other such tools with the main difference of separating documentation structure from
@@ -46,6 +46,21 @@ Download and unzip binaries for your OS:
 - [Linux x86-64](https://github.com/Kostassoid/memorial/releases/download/v0.1.0/memorial-cli-v0.1.0-x86_64-unknown-linux-musl.tar.gz)
 
 ## Usage
+
+### Running
+
+Running the CLI application with `scan` argument would read the configuration from the default path `./memorial.toml`,
+scan the files and create documentation files according to the configuration settings.
+
+```shell
+./memorial-cli scan
+```
+
+You can customize the path to the configuration file:
+
+```shell
+./memorial-cli scan -c "another.toml"
+```
 
 ### Notes formatting
 

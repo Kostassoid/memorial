@@ -1,17 +1,19 @@
+use std::collections::HashMap;
+use std::time::SystemTime;
+
+use time::OffsetDateTime;
+
 use crate::decorators::Decorator;
 use crate::model::attributes;
 use crate::model::handle::Handle;
-use crate::model::knowledge::KnowledgeTree;
-use std::collections::HashMap;
-use std::time::SystemTime;
-use time::OffsetDateTime;
+use crate::model::tree::Node;
 
 pub struct RootDecorator {
     pub title: String,
 }
 
 impl Decorator for RootDecorator {
-    fn decorate(&self, tree: &mut KnowledgeTree) -> anyhow::Result<()> {
+    fn decorate(&self, tree: &mut Node) -> anyhow::Result<()> {
         tree.merge_attributes(
             &Handle::ROOT,
             HashMap::from([

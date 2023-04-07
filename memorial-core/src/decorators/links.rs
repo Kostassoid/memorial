@@ -1,11 +1,13 @@
-use crate::decorators::Decorator;
-use crate::model::file_location::{FileLocation, FilePath};
-use crate::model::knowledge::KnowledgeTree;
-use anyhow::Result;
 use std::collections::HashMap;
 use std::string::ToString;
+
+use anyhow::Result;
 use strfmt::Format;
 use url::Url;
+
+use crate::decorators::Decorator;
+use crate::model::file_location::{FileLocation, FilePath};
+use crate::model::tree::Node;
 
 pub struct LinksDecorator {
     root: String,
@@ -56,8 +58,8 @@ impl LinksDecorator {
 }
 
 impl Decorator for LinksDecorator {
-    fn decorate(&self, tree: &mut KnowledgeTree) -> Result<()> {
-        tree.visit_mut(&|node: &mut KnowledgeTree| {
+    fn decorate(&self, tree: &mut Node) -> Result<()> {
+        tree.visit_mut(&|node: &mut Node| {
             for n in node.notes_mut() {
                 let l = n.location_mut();
                 self.wrap(l)?;

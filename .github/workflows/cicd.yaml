@@ -1,9 +1,16 @@
 name: CI/CD
 
+permissions:
+  contents: read
+  packages: write
+
 env:
   RUST_VERSION: "1.67.1"
   OUTPUT_PATH: "_out"
+  CARGO: "cargo"
   CARGO_TERM_COLOR: always
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 on:
   workflow_dispatch:
@@ -30,7 +37,7 @@ jobs:
       matrix:
         job:
           - { target: x86_64-pc-windows-gnu       , os: windows-2022 }
-          - { target: x86_64-unknown-linux-musl   , os: ubuntu-22.04 }
+          - { target: x86_64-unknown-linux-musl   , os: ubuntu-22.04 , docker-push: true }
           - { target: x86_64-apple-darwin         , os: macos-11 }
           - { target: aarch64-apple-darwin        , os: macos-11     , skip-tests: true }
     steps:
@@ -48,19 +55,6 @@ jobs:
         with:
           toolchain: stable
           target: ${{ matrix.job.target }}
-
-      - name: Set Cargo env
-        shell: bash
-        run: |
-          echo "CARGO=cargo" >> $GITHUB_ENV
-
-      #      - name: Install Cross
-      #        shell: bash
-      #        run: |
-      #          cargo install cross
-      #          echo "CARGO=cross" >> $GITHUB_ENV
-      #          echo "TARGET_FLAGS=--target ${{ matrix.job.target }}" >> $GITHUB_ENV
-      #          echo "TARGET_DIR=./target/${{ matrix.job.target }}" >> $GITHUB_ENV
 
       - name: Show version information (Rust, cargo)
         shell: bash
@@ -145,7 +139,6 @@ jobs:
           name: ${{ steps.package.outputs.PKG_NAME }}
           path: ${{ steps.package.outputs.PKG_PATH }}
 
-
       - name: Publish archives and packages
         uses: softprops/action-gh-release@v1
         if: steps.is-release.outputs.IS_RELEASE
@@ -154,3 +147,27 @@ jobs:
             ${{ steps.package.outputs.PKG_PATH }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to the Container registry
+        if: ${{ matrix.job.docker-push }}
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        if: ${{ matrix.job.docker-push }}
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        if: ${{ matrix.job.docker-push }}
+        uses: docker/build-push-action@v4
+        with:
+          context: target/release
+          push: ${{ steps.is-release.outputs.IS_RELEASE }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

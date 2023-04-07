@@ -1,23 +1,26 @@
-use super::handle::*;
-use super::note::Note;
-use crate::model::file_location::FileLocation;
-use crate::model::note::NoteSpan;
-use anyhow::Result;
 use std::collections::{BTreeMap, HashMap, HashSet};
 
+use anyhow::Result;
+
+use crate::model::file_location::FileLocation;
+use crate::model::note::NoteSpan;
+
+use super::handle::*;
+use super::note::Note;
+
 #[derive(Debug)]
-pub struct KnowledgeTree {
+pub struct Node {
     handle: Handle,
     attributes: HashMap<String, String>,
     mentions: HashSet<Handle>,
     notes: Vec<Note>,
     extra: Vec<FileLocation>,
-    children: BTreeMap<HandlePart, Box<KnowledgeTree>>,
+    children: BTreeMap<HandlePart, Box<Node>>,
 }
 
-impl KnowledgeTree {
-    pub fn at(handle: Handle) -> KnowledgeTree {
-        KnowledgeTree {
+impl Node {
+    pub fn at(handle: Handle) -> Node {
+        Node {
             handle,
             attributes: Default::default(),
             mentions: Default::default(),
@@ -27,7 +30,7 @@ impl KnowledgeTree {
         }
     }
 
-    pub fn root() -> KnowledgeTree {
+    pub fn root() -> Node {
         Self::at(Handle::ROOT)
     }
 
@@ -38,7 +41,7 @@ impl KnowledgeTree {
     pub fn handle(&self) -> &Handle {
         &self.handle
     }
-    pub fn children(&self) -> &BTreeMap<HandlePart, Box<KnowledgeTree>> {
+    pub fn children(&self) -> &BTreeMap<HandlePart, Box<Node>> {
         &self.children
     }
 
@@ -66,7 +69,7 @@ impl KnowledgeTree {
         &mut self.extra
     }
 
-    pub fn find_node_mut(&mut self, handle: &Handle) -> &mut KnowledgeTree {
+    pub fn find_node_mut(&mut self, handle: &Handle) -> &mut Node {
         let mut node = self;
 
         let mut temp_handle = Handle::ROOT;
@@ -77,7 +80,7 @@ impl KnowledgeTree {
             if children.contains_key(p) {
                 node = children.get_mut(p).unwrap();
             } else {
-                let new_node = KnowledgeTree::at(temp_handle.clone());
+                let new_node = Node::at(temp_handle.clone());
 
                 children.insert(p.clone(), Box::new(new_node));
 
@@ -88,7 +91,7 @@ impl KnowledgeTree {
         node
     }
 
-    pub fn find_node(&self, handle: &Handle) -> Option<&KnowledgeTree> {
+    pub fn find_node(&self, handle: &Handle) -> Option<&Node> {
         let mut node = self;
 
         for p in handle.parts() {
@@ -136,7 +139,7 @@ impl KnowledgeTree {
     #[allow(dead_code)]
     pub fn visit<F>(&self, f: &F) -> Result<()>
     where
-        F: Fn(&KnowledgeTree) -> Result<()>,
+        F: Fn(&Node) -> Result<()>,
     {
         f(self)?;
 
@@ -149,7 +152,7 @@ impl KnowledgeTree {
 
     pub fn visit_mut<F>(&mut self, f: &F) -> Result<()>
     where
-        F: Fn(&mut KnowledgeTree) -> Result<()>,
+        F: Fn(&mut Node) -> Result<()>,
     {
         f(self)?;
 
@@ -163,13 +166,15 @@ impl KnowledgeTree {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::model::note::NoteSpan;
     use std::cell::RefCell;
 
+    use crate::model::note::NoteSpan;
+
+    use super::*;
+
     #[test]
-    fn knowledge_tree_empty() {
-        let kt = KnowledgeTree::root();
+    fn tree_node_empty() {
+        let kt = Node::root();
 
         assert_eq!(kt.children.len(), 0);
         assert!(kt.is_empty())
@@ -177,7 +182,7 @@ mod test {
 
     #[test]
     fn adding_non_empty_notes() {
-        let mut kt = KnowledgeTree::root();
+        let mut kt = Node::root();
 
         let handle1 = Handle::from_str("a/b/c").unwrap();
         let handle2 = Handle::from_str("a/b/d").unwrap();
@@ -228,7 +233,7 @@ mod test {
 
     #[test]
     fn adding_empty_notes() {
-        let mut kt = KnowledgeTree::root();
+        let mut kt = Node::root();
 
         let handle = Handle::from_str("a/b/c").unwrap();
 
@@ -253,7 +258,7 @@ mod test {
 
     #[test]
     fn merging_attributes() {
-        let mut kt = KnowledgeTree::root();
+        let mut kt = Node::root();
 
         let handle = Handle::from_str("a/b/c").unwrap();
 
@@ -284,7 +289,7 @@ mod test {
 
     #[test]
     fn walking_a_tree() {
-        let mut kt = KnowledgeTree::root();
+        let mut kt = Node::root();
 
         kt.find_node_mut(&Handle::from_str("a/b/c").unwrap());
         kt.find_node_mut(&Handle::from_str("x/y/z").unwrap());

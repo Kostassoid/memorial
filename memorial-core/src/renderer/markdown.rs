@@ -5,15 +5,15 @@ use anyhow::Result;
 use crate::model::attributes;
 use crate::model::file_location::FileLocation;
 use crate::model::handle::Handle;
-use crate::model::knowledge::KnowledgeTree;
 use crate::model::note::{Note, NoteSpan};
+use crate::model::tree::Node;
 use crate::renderer::staging::{StagedFile, StagingArea};
 use crate::renderer::Renderer;
 
 pub struct MarkdownRenderer {}
 
 struct RendererSession<'a> {
-    root: &'a KnowledgeTree,
+    root: &'a Node,
     out: &'a mut StagedFile,
 }
 
@@ -24,7 +24,7 @@ impl MarkdownRenderer {
 }
 
 impl Renderer for MarkdownRenderer {
-    fn render(&self, root: &KnowledgeTree, fs: &mut StagingArea) -> Result<()> {
+    fn render(&self, root: &Node, fs: &mut StagingArea) -> Result<()> {
         /*@[Core/Renderer/Markdown]
         One possible future improvement is allowing to render the collected notes into multiple files.
         This can be user-controlled by using attributes. Hence that's how output file path is
@@ -66,7 +66,7 @@ impl<'a> RendererSession<'a> {
         ))
     }
 
-    fn render_node(&mut self, level: usize, node: &KnowledgeTree) -> Result<()> {
+    fn render_node(&mut self, level: usize, node: &Node) -> Result<()> {
         self.w(&*format!(
             "{} <a id=\"{}\"></a> {}\n\n",
             "#".repeat(level),
@@ -101,7 +101,7 @@ impl<'a> RendererSession<'a> {
         Ok(())
     }
 
-    fn render_toc(&mut self, level: usize, node: &KnowledgeTree) -> Result<()> {
+    fn render_toc(&mut self, level: usize, node: &Node) -> Result<()> {
         if node
             .attributes()
             .get(attributes::TOC)
@@ -120,7 +120,7 @@ impl<'a> RendererSession<'a> {
         Ok(())
     }
 
-    fn render_toc_links(&mut self, level: usize, node: &KnowledgeTree) -> Result<()> {
+    fn render_toc_links(&mut self, level: usize, node: &Node) -> Result<()> {
         if level > 0 {
             self.w(&*format!(
                 "{}- {}\n",
@@ -195,10 +195,10 @@ mod test {
     use super::*;
 
     #[test]
-    fn render_from_knowledge_tree() {
-        let mut knowledge = KnowledgeTree::root();
+    fn render_from_tree() {
+        let mut tree = Node::root();
 
-        knowledge.merge_attributes(
+        tree.merge_attributes(
             &Handle::ROOT,
             HashMap::from([
                 (attributes::TITLE.to_string(), "Big Nice Title".to_string()),
@@ -212,7 +212,7 @@ mod test {
             ]),
         );
 
-        knowledge.add_note(
+        tree.add_note(
             &Handle::from_str("a/b/c").unwrap(),
             Note::new(
                 FileLocation::new_relative("path/to/file1.ext", 123),
@@ -223,12 +223,12 @@ mod test {
             ),
         );
 
-        knowledge.merge_attributes(
+        tree.merge_attributes(
             &Handle::from_str("a/b/c").unwrap(),
             HashMap::from([(attributes::TITLE.to_string(), "Sub title".to_string())]),
         );
 
-        knowledge.add_note(
+        tree.add_note(
             &Handle::from_str("a/b/d").unwrap(),
             Note::new(
                 FileLocation::new_relative("path/to/file2.ext", 234),
@@ -239,7 +239,7 @@ mod test {
         let mut fs = StagingArea::new();
         let renderer = MarkdownRenderer::new();
 
-        renderer.render(&knowledge, &mut fs).unwrap();
+        renderer.render(&tree, &mut fs).unwrap();
 
         let generated = String::from_utf8(fs.open("test").unwrap().contents().clone())
             .unwrap()
