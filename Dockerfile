@@ -1,8 +1,10 @@
 FROM debian:bullseye-slim
 
+ARG TARGET
+
 RUN mkdir -p /usr/memorial
 
-COPY target/release/memorial-cli /usr/memorial
+COPY target/${TARGET}/release/memorial-cli /usr/memorial
 
 RUN useradd --user-group --create-home --no-log-init --shell /bin/bash memorial
 
