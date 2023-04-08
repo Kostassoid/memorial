@@ -36,7 +36,7 @@ the code structure. The format is also less strict.
 
 ## Downloads
 
-Current release: **Unreleased** [Changelog](CHANGELOG.md)
+Current release: **v0.1.0** [Changelog](CHANGELOG.md)
 
 Download and unzip binaries for your OS:
 
@@ -60,6 +60,14 @@ You can customize the path to the configuration file:
 
 ```shell
 ./memorial-cli scan -c "another.toml"
+```
+
+### Running from Docker
+
+There's also a pre-built Docker image you can use:
+
+```shell
+docker run --rm -it -v $(pwd):/src ghcr.io/kostassoid/memorial:v0.1.0
 ```
 
 ### Notes formatting

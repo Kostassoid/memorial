@@ -1,11 +1,15 @@
-FROM alpine
+FROM debian:bullseye-slim
 
-LABEL org.opencontainers.image.source=https://github.com/Kostassoid/memorial
-LABEL org.opencontainers.image.description="A CLI tool for collecting notes from the source code files"
-LABEL org.opencontainers.image.licenses=MIT
+RUN mkdir -p /usr/memorial
 
-COPY target/release/memorial-cli /bin/
+COPY target/release/memorial-cli /usr/memorial
 
-WORKDIR /project
+RUN useradd --user-group --create-home --no-log-init --shell /bin/bash memorial
 
-ENTRYPOINT [ "/bin/memorial-cli" ]
+RUN chown -R memorial:memorial /usr/memorial
+
+USER memorial
+
+WORKDIR /src
+
+ENTRYPOINT [ "/bin/memorial-cli", "scan" ]
