@@ -44,11 +44,12 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v3
 
-      - name: Extract crate information
+      - name: Set common env variables
         shell: bash
         run: |
           echo "PROJECT_NAME=memorial-cli" >> $GITHUB_ENV
           echo "PROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n1)" >> $GITHUB_ENV
+          echo "TARGET_FLAGS=--target ${{ matrix.job.target }}" >> $GITHUB_ENV
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable

@@ -12,4 +12,4 @@ USER memorial
 
 WORKDIR /src
 
-ENTRYPOINT [ "/bin/memorial-cli", "scan" ]
+ENTRYPOINT [ "/usr/memorial/memorial-cli", "scan" ]
