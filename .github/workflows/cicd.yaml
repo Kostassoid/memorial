@@ -1,7 +1,7 @@
 name: CI/CD
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 env:
@@ -16,8 +16,8 @@ on:
   workflow_dispatch:
   pull_request:
   push:
-#    branches:
-#      - master
+    #    branches:
+    #      - master
     tags:
       - 'v*'
 
