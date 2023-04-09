@@ -48,7 +48,7 @@ impl App {
                 let config = Config::from_file(config_path)?;
                 let verbose_mode = scan_args.get_flag("verbose");
 
-                println!("Using config {}", &config_path);
+                println!("Using config file {}", &config_path);
 
                 Ok(ScanAction {
                     config,
