@@ -125,7 +125,7 @@ impl Action for ScanAction {
             .iter()
             .for_each(|d| d.decorate(collector.collected_mut()).unwrap());
 
-        /*@[CLI/Scan]
+        /*@[CLI/Scan]:
         Even though the overall design and the config model allow for using multiple renderers, this
         feels like a rabbit hole of over-generalization.
         So the idea is to keep Markdown as the one and only renderer until the rest of the project is

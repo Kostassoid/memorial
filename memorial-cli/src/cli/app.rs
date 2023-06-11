@@ -10,7 +10,7 @@ pub struct App {}
 //@[CLI]{title:CLI application}{do-not-collect}
 impl App {
     pub fn setup() -> Result<impl Action> {
-        /*@[CLI]
+        /*@[CLI]:
         The application is primarily designed to be run in non-interactive mode (e.g. as a pre-commit
         hook or during CI). Because of that reason and to emphasize using VCS for anything important,
         practically all parameters are read from a configuration file instead of command-line arguments.
@@ -18,7 +18,7 @@ impl App {
         let args = Command::new("Memorial")
             .subcommand_required(true)
             .subcommand(
-                /*@[CLI] `scan` command is the only one implemented so far but it's not made a default
+                /*@[CLI]: `scan` command is the only one implemented so far but it's not made a default
                 because of the likely future extensions.
                 */
                 Command::new("scan")

@@ -1,7 +1,7 @@
 package main
 
 func main() {
-    /* @[Application]
+    /* @[Application]:
     Uses hard-coded values for demonstrating @[Domain/Accumulator/Invariants] in action.
 
     _Primary uses:_

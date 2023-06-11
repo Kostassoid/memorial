@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 
-/*@[Core/API] Event-based callback system allows to decouple core logic from UI without complicating
+/*@[Core/API]: Event-based callback system allows to decouple core logic from UI without complicating
 abstractions. Also works really well in unit tests.
 
 Primarily used by @[Core/Collector] so far but can be extended easily if needed.

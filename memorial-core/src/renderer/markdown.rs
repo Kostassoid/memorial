@@ -25,7 +25,7 @@ impl MarkdownRenderer {
 
 impl Renderer for MarkdownRenderer {
     fn render(&self, root: &Node, fs: &mut StagingArea) -> Result<()> {
-        /*@[Core/Renderer/Markdown]
+        /*@[Core/Renderer/Markdown]:
         One possible future improvement is allowing to render the collected notes into multiple files.
         This can be user-controlled by using attributes. Hence that's how output file path is
         passed to the renderer. But, for now, only a value from the root node is used.
@@ -38,7 +38,7 @@ impl Renderer for MarkdownRenderer {
     }
 }
 
-/*@[Core/Renderer/Markdown]
+/*@[Core/Renderer/Markdown]:
 The renderer is currently implemented using low level string builders. This seemed like a good idea
 during the initial development phase as integrating with template engine libraries would require
 preparing the data in a certain way, which, depending on the engine implementation could limit the

@@ -78,7 +78,7 @@ Any properly formatted comment block can be collected as a single note.
 Full format of a note looks like this:
 
 ```
-@[Handle]{Attribute:WithValue}{AttributeAsToggle} Note body
+@[Handle]{Attribute:WithValue}{AttributeAsToggle}: Note body
 ```
 
 #### Handle
@@ -109,7 +109,7 @@ Most attributes are used internally. But the following attributes can be used ad
 For example, the following note:
 
 ```
-//@[Foo/Bar]{title:A pretty name} Some meaningful information
+//@[Foo/Bar]{title:A pretty name}: Some meaningful information
 ```
 
 Can also be written as:
@@ -119,18 +119,20 @@ Can also be written as:
 
 ...
 
-//@[Foo/Bar] Some meaningful information
+//@[Foo/Bar]: Some meaningful information
 ```
 
 #### Note body
 
-`Note body` is basically the rest of the comment after the last `Attribute` (if there are any) and is treated as a piece
-of Markdown. Which means that any plain text comment would work as well.
+`Note body` is basically the rest of the comment after the header (`Handle` + optional set of `Attribute`s) following
+the separator `:`.
+Note that if there's no `Note body` the separator is not required.
+The note body is treated as a piece of Markdown. Which means that any plain text comment would work as well.
 
 Additionally, it's possible to create links to nodes by using a `Handle`, e.g.:
 
 ```
-//@[Foo/Bar] Also see @[Baz] for additional context.
+//@[Foo/Bar]: Also see @[Baz] for additional context.
 ```
 
 ### Configuration
@@ -148,7 +150,7 @@ quickly and drastically. Saying that, I'll do my best to respect semantic versio
 
 ## Known issues / limitations
 
-- [ ] Using `{` character in notes causes parser to fail (needs support for escaping or a smarter parser definition)
+- [x] Using `{` character in notes causes parser to fail (needs support for escaping or a smarter parser definition)
 - [ ] No way to fine-tune ordering for notes/nodes
 - [ ] No support for multi-line comments using single-line syntax
 - [ ] No support for indentations containing non-whitespace characters (like `*`)

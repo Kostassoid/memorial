@@ -1,4 +1,4 @@
-root = _{ SOI ~ handle ~ attr* ~ span* ~ silent_eoi }
+root = _{ SOI ~ handle ~ attr* ~ (":" ~ span*)? ~ silent_eoi }
 span = _{ handle | text }
 
 handle_body = { (!("]") ~ ANY)+ }
@@ -8,7 +8,7 @@ attr_key   = { (!(":" | "}") ~ ANY)+ }
 attr_value = { (!("}") ~ ANY)+ }
 attr       = { "{" ~ attr_key ~ (":" ~ attr_value)? ~ "}" }
 
-text = { (!("{" | "@[") ~ ANY)+ }
+text = { (!"@[" ~ ANY)+ }
 
 WHITESPACE = _{ " " | "\t" | NEWLINE }
 

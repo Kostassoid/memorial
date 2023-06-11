@@ -11,15 +11,19 @@ SEMVER_PATTERN='([0-9]+)\.([0-9]+)\.([0-9]+)(.*)'
 MAJOR=${BASH_REMATCH[1]}
 MINOR=${BASH_REMATCH[2]}
 PATCH=${BASH_REMATCH[3]}
+# shellcheck disable=SC2034
 SUFFIX=${BASH_REMATCH[4]}
 
 # shellcheck disable=SC2004
 case $1 in
   "major")
     MAJOR=$(($MAJOR+1))
+    MINOR="0"
+    PATCH="0"
     ;;
   "minor")
     MINOR=$(($MINOR+1))
+    PATCH="0"
     ;;
   "patch")
     PATCH=$(($PATCH+1))
