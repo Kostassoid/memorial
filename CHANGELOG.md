@@ -2,7 +2,7 @@
 
 ## [Unreleased] - ReleaseDate
 
-Breaking:
+Breaking change:
 
 - Introduced a separator ':' between note header and note body to avoid having to escape '{'.
 - Simplified JavaScript parser.
