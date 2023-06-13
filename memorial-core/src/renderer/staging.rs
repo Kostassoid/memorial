@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 
-/*@[Core/Renderer/Staging]
+/*@[Core/Renderer/Staging]:
 `StagingArea` acts as an intermediate temp file system for keeping the rendered files until the rendering
 is complete. The files can then be written down to the final location in one go.
 
@@ -62,7 +62,7 @@ impl StagingArea {
     }
 }
 
-/*@[Core/Renderer/Staging]
+/*@[Core/Renderer/Staging]:
 Staging in the current implementation stores data in memory. This approach simplifies design but
 obviously won't scale well. For the future versions, some memory independent storage should be used.
 E.g. `/tmp`.

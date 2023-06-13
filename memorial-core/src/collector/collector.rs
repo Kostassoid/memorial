@@ -67,7 +67,7 @@ impl Collector {
                 .into_iter()
                 .filter_map(|q| self.process_quote(q, path.clone()).err())
                 .filter(|e| {
-                    //@[Core/Collector] Ignoring parsing errors on collected quotes on (1,1) position to reduce false warnings.
+                    //@[Core/Collector]: Ignoring parsing errors on collected quotes on (1,1) position to reduce false warnings.
                     match e.downcast_ref::<pest::error::Error<quote_parser::Rule>>() {
                         Some(ee) if ee.line_col == LineColLocation::Pos((1, 1)) => false,
                         _ => true,
@@ -179,11 +179,11 @@ mod test {
             files: vec![
                 StubFile {
                     path: "path/to/file1.go".into(),
-                    contents: "//@[a/b/c] note 1".to_string(),
+                    contents: "//@[a/b/c]: note 1".to_string(),
                 },
                 StubFile {
                     path: "path/to/file2.go".into(),
-                    contents: "//@[a/b/c]{toggle} note 2, see @[x/y/z] for more".to_string(),
+                    contents: "//@[a/b/c]{toggle}: note 2, see @[x/y/z] for more".to_string(),
                 },
             ],
         };

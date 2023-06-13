@@ -1,13 +1,13 @@
 package main
 
-//@[Domain/Accumulator] Collects stuff
+//@[Domain/Accumulator]: Collects stuff
 type Accumulator struct {
     ID string
     Value int32
 }
 
 func (a *Accumulator) Collect(x int32) error {
-    /*@[Domain/Accumulator/Invariants]{title:Domain rules}
+    /*@[Domain/Accumulator/Invariants]{title:Domain rules}:
     The accumulated value is always increasing when collecting new values.
     */
     // Normal comment
@@ -21,7 +21,7 @@ func (a *Accumulator) Collect(x int32) error {
 }
 
 func (a *Accumulator) Reset() {
-    /* @[Domain/Accumulator/Invariants]
+    /* @[Domain/Accumulator/Invariants]:
     Accumulator can be reset to a starting point (0) explicitly.
     */
     a.Value = 0

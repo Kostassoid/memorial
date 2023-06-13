@@ -1,8 +1,9 @@
-use crate::collector::QuoteSpan;
-use crate::model::handle::Handle;
 use anyhow::{anyhow, Result};
 use pest::Parser as P;
 use pest_derive::Parser;
+
+use crate::collector::QuoteSpan;
+use crate::model::handle::Handle;
 
 #[derive(Parser)]
 #[grammar = "src/collector/quote.pest"]
@@ -39,14 +40,15 @@ impl QuoteParser {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::model::attributes;
+
+    use super::*;
 
     #[test]
     fn parse_quote() {
         let parsed = QuoteParser::parse_from_str(
             r#"
-            @[Domain/Accumulator/Invariants]{title:Domain rules}{toggle}
+            @[Domain/Accumulator/Invariants]{title:Domain rules}{toggle}:
             The accumulated value is always increasing when collecting new values.
             See @[Domain/Other/Rule] for more details.
        "#,

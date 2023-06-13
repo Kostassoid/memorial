@@ -15,7 +15,7 @@ pub fn derive_file_parser(input: TokenStream) -> TokenStream {
                 let line = pair.line_col().0;
                 let indent = pair.line_col().1 - 1;
 
-                /*@[Core/Parser]
+                /*@[Core/Parser]:
                 Handling of the indentations should be ideally done within the generated parser.
                 But due to the lack of experience with Pest, this is done as a draft implementation
                 using additional post-processing step. This would likely create additional challenge
