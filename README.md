@@ -36,14 +36,14 @@ the code structure. The format is also less strict.
 
 ## Downloads
 
-Current release: **v0.2.0** [Changelog](CHANGELOG.md)
+Current release: **v0.2.1** [Changelog](CHANGELOG.md)
 
 Download and unzip binaries for your OS:
 
-- [Windows x86-64](https://github.com/Kostassoid/memorial/releases/download/v0.2.0/memorial-cli-v0.2.0-x86_64-pc-windows-gnu.zip)
-- [macOS Intel](https://github.com/Kostassoid/memorial/releases/download/v0.2.0/memorial-cli-v0.2.0-x86_64-apple-darwin.tar.gz)
-- [macOS Apple](https://github.com/Kostassoid/memorial/releases/download/v0.2.0/memorial-cli-v0.2.0-aarch64-apple-darwin.tar.gz)
-- [Linux x86-64](https://github.com/Kostassoid/memorial/releases/download/v0.2.0/memorial-cli-v0.2.0-x86_64-unknown-linux-musl.tar.gz)
+- [Windows x86-64](https://github.com/Kostassoid/memorial/releases/download/v0.2.1/memorial-cli-v0.2.1-x86_64-pc-windows-gnu.zip)
+- [macOS Intel](https://github.com/Kostassoid/memorial/releases/download/v0.2.1/memorial-cli-v0.2.1-x86_64-apple-darwin.tar.gz)
+- [macOS Apple](https://github.com/Kostassoid/memorial/releases/download/v0.2.1/memorial-cli-v0.2.1-aarch64-apple-darwin.tar.gz)
+- [Linux x86-64](https://github.com/Kostassoid/memorial/releases/download/v0.2.1/memorial-cli-v0.2.1-x86_64-unknown-linux-musl.tar.gz)
 
 ## Usage
 
@@ -67,7 +67,7 @@ You can customize the path to the configuration file:
 There's also a pre-built Docker image you can use:
 
 ```shell
-docker run --rm -it -v $(pwd):/src ghcr.io/kostassoid/memorial:v0.2.0
+docker run --rm -it -v $(pwd):/src ghcr.io/kostassoid/memorial:v0.2.1
 ```
 
 ### Notes formatting

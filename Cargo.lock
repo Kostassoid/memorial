@@ -300,7 +300,7 @@ checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
 
 [[package]]
 name = "memorial-cli"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -316,7 +316,7 @@ dependencies = [
 
 [[package]]
 name = "memorial-core"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "glob",
@@ -333,7 +333,7 @@ dependencies = [
 
 [[package]]
 name = "memorial-macros"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "proc-macro2",
  "quote",
